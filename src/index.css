@@ -1,0 +1,86 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 120 6% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 120 6% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 120 6% 10%;
+
+    --primary: 90 52% 51%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 90 12% 96%;
+    --secondary-foreground: 90 52% 51%;
+
+    --muted: 90 12% 96%;
+    --muted-foreground: 120 4% 46%;
+
+    --accent: 90 12% 96%;
+    --accent-foreground: 90 52% 51%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 120 6% 90%;
+    --input: 120 6% 90%;
+    --ring: 90 52% 51%;
+
+    --radius: 0.75rem;
+    
+    --sidebar-background: 120 50% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 90 52% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 120 40% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 120 40% 15%;
+    --sidebar-ring: 90 52% 51%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold;
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+
+  .card-gradient {
+    @apply bg-gradient-to-br from-white to-farmlink-offwhite;
+  }
+  
+  .green-gradient {
+    @apply bg-gradient-to-r from-farmlink-darkgreen via-farmlink-green to-farmlink-lightgreen;
+  }
+  
+  .hoverable {
+    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-1;
+  }
+}
