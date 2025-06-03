@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   return (
     <aside
     className={cn(
-      "flex flex-col h-screen fixed z-40 bg-gradient-to-b from-farmlink-lightgreen via-farmlink-mediumgreen to-farmlink-green shadow-lg transition-all duration-300 ease-in-out",
+      "flex flex-col h-screen fixed z-40 bg-farmlink-mediumgreen shadow-lg transition-all duration-300 ease-in-out",
       collapsed ? "w-20" : "w-64"
     )}
   >

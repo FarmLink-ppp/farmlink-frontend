@@ -18,7 +18,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = () => {
   return (     
 
-    <header className="w-full sticky top-0 z-30 border-b border-farmlink-mediumgreen bg-gradient-to-br from-farmlink-lightgreen via-farmlink-mediumgreen to-farmlink-green transition-all duration-300 ease ">
+    <header className="bg-radial from-farmlink-lightgreen via-farmlink-mediumgreen to-farmlink-green
+">
     <div className="h-16 px-6 flex items-center justify-between relative">
       {/* Centered Search */}
       
