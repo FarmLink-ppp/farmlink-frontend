@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import PostCard from "@/components/community/PostCard";
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, MessageSquare, Filter, Send, Image as ImageIcon } from "lucide-react";
+import { Users, MessageSquare, Filter, Send, Image as ImageIcon, Sparkles } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Post {
@@ -58,7 +57,7 @@ const mockPosts = [
 
 const trendingTopics = [
   "Organic Farming",
-  "Irrigation Systems",
+  "Irrigation Systems", 
   "Crop Disease",
   "Sustainable Practices",
   "Market Prices",
@@ -142,38 +141,37 @@ const Community = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center">
-              <Users className="mr-2 h-7 w-7 text-farmlink-green" />
-              Community Forum
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Connect with fellow farmers, share insights, and learn from experiences
-            </p>
+      <div className="space-y-8 animate-fade-in">
+        {/* Modern Header Section */}
+        <div className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 rounded-2xl p-8 border border-farmlink-lightgreen/20">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-farmlink-green to-farmlink-mediumgreen rounded-2xl flex items-center justify-center">
+              <Users className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-farmlink-darkgreen">
+                Community Forum
+              </h1>
+              <p className="text-farmlink-darkgreen/70 text-lg">
+                Connect with fellow farmers, share insights, and learn from experiences
+              </p>
+            </div>
           </div>
-          <Button className="hidden md:flex">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Start Discussion
-          </Button>
+          
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-farmlink-lightgreen/20 text-farmlink-darkgreen text-sm font-medium">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Join 15,000+ farmers sharing knowledge worldwide
+          </div>
         </div>
 
-        <div className="md:hidden">
-          <Button className="w-full">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Start Discussion
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardContent className="p-4">
+            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6">
                 <form onSubmit={handlePostSubmit}>
                   <Textarea
                     placeholder="Share your farming experience or ask a question..."
-                    className="resize-none mb-4"
+                    className="resize-none mb-4 bg-white/70 border-farmlink-lightgreen/30 focus:border-farmlink-green focus:ring-farmlink-green/20 text-farmlink-darkgreen"
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
                   />
@@ -183,7 +181,7 @@ const Community = () => {
                       <img 
                         src={imagePreview} 
                         alt="Preview" 
-                        className="w-full h-auto max-h-60 rounded-md object-cover" 
+                        className="w-full h-auto max-h-60 rounded-xl object-cover" 
                       />
                       <Button 
                         variant="destructive" 
@@ -198,9 +196,9 @@ const Community = () => {
                   )}
                   
                   <div className="flex justify-between items-center">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       <label htmlFor="image-upload" className="cursor-pointer">
-                        <Button variant="outline" size="sm" type="button" className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" type="button" className="flex items-center gap-2 border-farmlink-lightgreen/30 hover:bg-farmlink-green/5">
                           <ImageIcon className="h-4 w-4" />
                           Photo
                         </Button>
@@ -212,11 +210,11 @@ const Community = () => {
                           onChange={handleImageUpload}
                         />
                       </label>
-                      <Button variant="outline" size="sm" type="button">
+                      <Button variant="outline" size="sm" type="button" className="border-farmlink-lightgreen/30 hover:bg-farmlink-green/5">
                         📌 Pin Location
                       </Button>
                     </div>
-                    <Button type="submit" disabled={!newPost.trim()}>
+                    <Button type="submit" disabled={!newPost.trim()} className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                       <Send className="mr-2 h-4 w-4" />
                       Post
                     </Button>
@@ -226,10 +224,10 @@ const Community = () => {
             </Card>
 
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Recent Discussions</h2>
+              <h2 className="text-xl font-semibold text-farmlink-darkgreen">Recent Discussions</h2>
               <div className="flex gap-2">
                 <select 
-                  className="text-sm border rounded-md px-2 py-1"
+                  className="text-sm border border-farmlink-lightgreen/30 rounded-md px-2 py-1 bg-white/70 text-farmlink-darkgreen"
                   value={selectedFilter}
                   onChange={(e) => setSelectedFilter(e.target.value)}
                 >
@@ -238,7 +236,7 @@ const Community = () => {
                   <option value="tip">Tips & Tricks</option>
                   <option value="success">Success Stories</option>
                 </select>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-farmlink-darkgreen hover:bg-farmlink-green/5">
                   <Filter className="mr-1 h-4 w-4" /> Filter
                 </Button>
               </div>
@@ -258,11 +256,11 @@ const Community = () => {
                   />
                 ))
               ) : (
-                <div className="text-center p-8 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground">No posts match your criteria.</p>
+                <div className="text-center p-8 bg-farmlink-lightgreen/10 rounded-2xl border border-farmlink-lightgreen/20">
+                  <p className="text-farmlink-darkgreen/70">No posts match your criteria.</p>
                   <Button 
                     variant="outline" 
-                    className="mt-4"
+                    className="mt-4 border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
                     onClick={() => {
                       setSelectedFilter("all");
                       setSearchQuery("");
@@ -276,15 +274,15 @@ const Community = () => {
 
             {filteredPosts.length > 0 && (
               <div className="text-center">
-                <Button variant="outline">Load More Posts</Button>
+                <Button variant="outline" className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5">Load More Posts</Button>
               </div>
             )}
           </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Search Community</CardTitle>
+            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-farmlink-darkgreen">Search Community</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="relative">
@@ -292,10 +290,11 @@ const Community = () => {
                     placeholder="Search discussions..." 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-white/70 border-farmlink-lightgreen/30 focus:border-farmlink-green focus:ring-farmlink-green/20 text-farmlink-darkgreen"
                   />
                   {searchQuery && (
                     <button
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-farmlink-darkgreen/60 hover:text-farmlink-darkgreen"
                       onClick={() => setSearchQuery("")}
                     >
                       ✕
@@ -305,9 +304,9 @@ const Community = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Trending Topics</CardTitle>
+            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-farmlink-darkgreen">Trending Topics</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -317,6 +316,7 @@ const Community = () => {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleTopicClick(topic)}
+                      className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
                     >
                       #{topic.replace(" ", "")}
                     </Button>
@@ -325,13 +325,13 @@ const Community = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Daily Farming Tip</CardTitle>
+            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-farmlink-darkgreen">Daily Farming Tip</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-farmlink-lightgreen/10 p-3 rounded-md">
-                  <p className="text-sm italic">
+                <div className="bg-gradient-to-r from-farmlink-lightgreen/10 to-farmlink-green/5 p-4 rounded-xl border border-farmlink-lightgreen/20">
+                  <p className="text-sm italic text-farmlink-darkgreen">
                     "Improve soil health by adding organic matter at least once 
                     per season. It increases water retention and provides vital 
                     nutrients."
@@ -340,21 +340,21 @@ const Community = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Contributors</CardTitle>
+            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-farmlink-darkgreen">Top Contributors</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {["Sarah Johnson", "Michael Chen", "Maria Rodriguez", "Ahmed Hassan"].map(
                   (name, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-farmlink-green/20 to-farmlink-mediumgreen/20 flex items-center justify-center mr-3 text-farmlink-darkgreen font-medium">
                           {name[0]}
                         </div>
-                        <span>{name}</span>
+                        <span className="text-farmlink-darkgreen">{name}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">{32 - index * 5} posts</span>
+                      <span className="text-xs text-farmlink-darkgreen/60">{32 - index * 5} posts</span>
                     </div>
                   )
                 )}

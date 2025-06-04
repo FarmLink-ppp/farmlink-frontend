@@ -52,12 +52,12 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-gradient-to-br from-farmlink-offwhite via-white to-farmlink-offwhite text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold;
+    @apply font-display font-semibold text-farmlink-darkgreen;
   }
   
   h1 {
@@ -73,14 +73,18 @@
   }
 
   .card-gradient {
-    @apply bg-gradient-to-br from-white to-farmlink-offwhite;
+    @apply bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300;
   }
   
   .green-gradient {
-    @apply bg-gradient-to-r from-farmlink-darkgreen via-farmlink-green to-farmlink-lightgreen;
+    @apply bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen;
   }
   
   .hoverable {
-    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-1;
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .modern-button {
+    @apply bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1;
   }
 }

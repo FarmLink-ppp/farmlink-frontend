@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarDays, Filter, Plus } from "lucide-react";
+import { CalendarDays, Filter, Plus, CheckCircle, Clock, AlertTriangle, Target, Zap } from "lucide-react";
 import TaskCalendar from "@/components/tasks/TaskCalendar";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -181,9 +181,9 @@ const Tasks = () => {
 
   const renderTaskContent = () => {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {filteredTasks.length > 0 ? filteredTasks.map((task) => (
               <TaskCard
                 key={task.id}
@@ -196,11 +196,13 @@ const Tasks = () => {
                 onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
               />
             )) : (
-              <div className="text-center p-8 bg-secondary rounded-lg">
-                <p>No tasks found in this category.</p>
+              <div className="text-center p-12 bg-gradient-to-br from-farmlink-offwhite/50 to-white rounded-2xl border border-farmlink-lightgreen/20 shadow-lg">
+                <Target className="h-16 w-16 text-farmlink-green/40 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">No tasks found</h3>
+                <p className="text-farmlink-darkgreen/70 mb-6">No tasks match your current filters.</p>
                 <Button 
                   variant="outline" 
-                  className="mt-4"
+                  className="border-farmlink-green text-farmlink-green hover:bg-farmlink-green hover:text-white"
                   onClick={() => {
                     setActiveTab("all");
                     setFilterPriority("all");
@@ -214,47 +216,63 @@ const Tasks = () => {
         </div>
         
         <div className="space-y-6">
-          <Card>
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <CardTitle>Task Summary</CardTitle>
+              <CardTitle className="text-farmlink-darkgreen flex items-center">
+                <Zap className="w-5 h-5 mr-2 text-farmlink-green" />
+                Task Summary
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Total Tasks</span>
-                  <span className="font-semibold">{tasks.length}</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-farmlink-offwhite/30">
+                  <span className="text-farmlink-darkgreen font-medium">Total Tasks</span>
+                  <span className="font-bold text-farmlink-darkgreen text-lg">{tasks.length}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Completed</span>
-                  <span className="font-semibold">{tasks.filter(t => t.status === "completed").length}</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-green-50">
+                  <span className="text-farmlink-darkgreen font-medium flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    Completed
+                  </span>
+                  <span className="font-bold text-green-600 text-lg">{tasks.filter(t => t.status === "completed").length}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>In Progress</span>
-                  <span className="font-semibold">{tasks.filter(t => t.status === "in-progress").length}</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-blue-50">
+                  <span className="text-farmlink-darkgreen font-medium flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-blue-600" />
+                    In Progress
+                  </span>
+                  <span className="font-bold text-blue-600 text-lg">{tasks.filter(t => t.status === "in-progress").length}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Pending</span>
-                  <span className="font-semibold">{tasks.filter(t => t.status === "pending").length}</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-yellow-50">
+                  <span className="text-farmlink-darkgreen font-medium flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-yellow-600" />
+                    Pending
+                  </span>
+                  <span className="font-bold text-yellow-600 text-lg">{tasks.filter(t => t.status === "pending").length}</span>
                 </div>
-                <div className="pt-2 border-t">
-                  <div className="flex justify-between items-center">
-                    <span>High Priority</span>
-                    <span className="text-red-500 font-semibold">{tasks.filter(t => t.priority === "high").length}</span>
+                <div className="pt-3 border-t border-farmlink-lightgreen/20">
+                  <div className="flex justify-between items-center p-3 rounded-xl bg-red-50">
+                    <span className="text-farmlink-darkgreen font-medium flex items-center">
+                      <AlertTriangle className="h-4 w-4 mr-2 text-red-600" />
+                      High Priority
+                    </span>
+                    <span className="text-red-600 font-bold text-lg">{tasks.filter(t => t.priority === "high").length}</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>Filter by Priority</span>
+              <CardTitle className="text-farmlink-darkgreen flex items-center">
+                <Filter className="w-5 h-5 mr-2 text-farmlink-green" />
+                Filter by Priority
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger>
+                <SelectTrigger className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -267,9 +285,9 @@ const Tasks = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle className="text-farmlink-darkgreen">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -278,12 +296,12 @@ const Tasks = () => {
                   { action: "Task created", task: "Inspect greenhouse vents", user: "Sarah", time: "Yesterday" },
                   { action: "Task updated", task: "Order new seeds", user: "Mike", time: "Yesterday" },
                 ].map((activity, i) => (
-                  <div key={i} className="border-b pb-2 last:border-0 last:pb-0">
-                    <p>
-                      <span className="font-medium">{activity.action}:</span>{" "}
-                      {activity.task}
+                  <div key={i} className="border-b border-farmlink-lightgreen/20 pb-3 last:border-0 last:pb-0">
+                    <p className="text-farmlink-darkgreen">
+                      <span className="font-semibold">{activity.action}:</span>{" "}
+                      <span className="text-farmlink-darkgreen/80">{activity.task}</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-farmlink-darkgreen/60 mt-1">
                       By {activity.user} • {activity.time}
                     </p>
                   </div>
@@ -298,134 +316,139 @@ const Tasks = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center">
-              <CalendarDays className="mr-2 h-7 w-7 text-farmlink-green" />
-              Task Management
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Plan, assign, and track your farming activities
-            </p>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add New Task
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-                <DialogDescription>
-                  Add details for the new farming task.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Task Title</Label>
-                  <Input 
-                    id="title" 
-                    placeholder="Enter task name"
-                    value={newTask.title}
-                    onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Enter task details"
-                    className="resize-none"
-                    value={newTask.description}
-                    onChange={(e) => setNewTask({...newTask, description: e.target.value})}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-8 animate-fade-in">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-farmlink-green/10 to-farmlink-mediumgreen/10 rounded-2xl p-8 border border-farmlink-lightgreen/20">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h1 className="text-4xl font-bold text-farmlink-darkgreen flex items-center mb-2">
+                <CalendarDays className="mr-3 h-8 w-8 text-farmlink-green" />
+                Task Management
+              </h1>
+              <p className="text-farmlink-darkgreen/70 text-lg">
+                Plan, assign, and track your farming activities efficiently
+              </p>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Add New Task
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="border-0 bg-white/95 backdrop-blur-sm">
+                <DialogHeader>
+                  <DialogTitle className="text-farmlink-darkgreen text-xl">Create New Task</DialogTitle>
+                  <DialogDescription className="text-farmlink-darkgreen/70">
+                    Add details for the new farming task.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Label htmlFor="title" className="text-farmlink-darkgreen font-medium">Task Title</Label>
                     <Input 
-                      id="dueDate" 
-                      type="date"
-                      value={newTask.dueDate}
-                      onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})} 
+                      id="title" 
+                      placeholder="Enter task name"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                      className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="assignee">Assign To</Label>
-                    <Select 
-                      value={newTask.assignee}
-                      onValueChange={(value) => setNewTask({...newTask, assignee: value})}
-                    >
-                      <SelectTrigger id="assignee">
-                        <SelectValue placeholder="Select person" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="John">John</SelectItem>
-                        <SelectItem value="Sarah">Sarah</SelectItem>
-                        <SelectItem value="Mike">Mike</SelectItem>
-                        <SelectItem value="Emma">Emma</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="description" className="text-farmlink-darkgreen font-medium">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Enter task details"
+                      className="resize-none border-farmlink-lightgreen/30 focus:border-farmlink-green"
+                      value={newTask.description}
+                      onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="dueDate" className="text-farmlink-darkgreen font-medium">Due Date</Label>
+                      <Input 
+                        id="dueDate" 
+                        type="date"
+                        value={newTask.dueDate}
+                        onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                        className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="assignee" className="text-farmlink-darkgreen font-medium">Assign To</Label>
+                      <Select 
+                        value={newTask.assignee}
+                        onValueChange={(value) => setNewTask({...newTask, assignee: value})}
+                      >
+                        <SelectTrigger id="assignee" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
+                          <SelectValue placeholder="Select person" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="John">John</SelectItem>
+                          <SelectItem value="Sarah">Sarah</SelectItem>
+                          <SelectItem value="Mike">Mike</SelectItem>
+                          <SelectItem value="Emma">Emma</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="priority" className="text-farmlink-darkgreen font-medium">Priority</Label>
+                      <Select
+                        value={newTask.priority}
+                        onValueChange={(value) => setNewTask({...newTask, priority: value})}
+                      >
+                        <SelectTrigger id="priority" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
+                          <SelectValue placeholder="Set priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="status" className="text-farmlink-darkgreen font-medium">Status</Label>
+                      <Select
+                        value={newTask.status}
+                        onValueChange={(value) => setNewTask({...newTask, status: value as "pending" | "in-progress" | "completed"})}
+                      >
+                        <SelectTrigger id="status" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
+                          <SelectValue placeholder="Set status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select
-                      value={newTask.priority}
-                      onValueChange={(value) => setNewTask({...newTask, priority: value})}
-                    >
-                      <SelectTrigger id="priority">
-                        <SelectValue placeholder="Set priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={newTask.status}
-                      onValueChange={(value) => setNewTask({...newTask, status: value as "pending" | "in-progress" | "completed"})}
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue placeholder="Set status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateTask}>
-                  Create Task
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-farmlink-lightgreen text-farmlink-darkgreen hover:bg-farmlink-offwhite">
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateTask} className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white">
+                    Create Task
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-between items-center">
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsList className="bg-white/70 backdrop-blur-sm border border-farmlink-lightgreen/30">
+              <TabsTrigger value="all" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">All</TabsTrigger>
+              <TabsTrigger value="pending" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Pending</TabsTrigger>
+              <TabsTrigger value="in-progress" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">In Progress</TabsTrigger>
+              <TabsTrigger value="completed" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Completed</TabsTrigger>
+              <TabsTrigger value="calendar" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Calendar</TabsTrigger>
             </TabsList>
           </div>
           

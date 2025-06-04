@@ -17,14 +17,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-gradient-to-br from-farmlink-offwhite via-white to-farmlink-offwhite flex">
       <Sidebar collapsed={collapsed} onToggle={toggleSidebar} />
       <div className={`flex-1 transition-all duration-300 ${
         collapsed ? "ml-16" : "ml-64"
       }`}>
         <Header sidebarCollapsed={collapsed} />
         <main className="p-6">
-          {children}
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

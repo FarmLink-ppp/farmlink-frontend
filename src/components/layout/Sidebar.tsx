@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   const menuItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -40,58 +42,78 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
 
   return (
     <aside
-    className={cn(
-      "flex flex-col h-screen fixed z-40 bg-farmlink-mediumgreen shadow-lg transition-all duration-300 ease-in-out",
-      collapsed ? "w-20" : "w-64"
-    )}
-  >
-    {/* Logo */}
-    <div className="flex items-center justify-center p-4 border-b border-white/10">
-      <Link to="/">
-        <img
-          src="/uploads/ac9862b9-1f21-485d-9c74-b07456464ba9.png"
-          alt="FarmLink Logo"
-          className={cn(
-            "transition-all duration-300 object-contain mx-auto",
-            collapsed ? "w-30 h-30" : "w-50 h-50"
-          )}
-        />
-      </Link>
-    </div>
-  
-    {/* Navigation */}
-    <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-2">
-      {menuItems.map((item) => (
-        <Link
-          key={item.name}
-          to={item.href}
-          className="group flex items-center gap-3 p-3 text-farmlink-offwhite/90 rounded-md hover:bg-farmlink-mediumgreen/60 transition-colors"
-        >
-          <item.icon className="h-5 w-5 flex-shrink-0 text-farmlink-offwhite/90 transition-transform group-hover:scale-110" />
+      className={cn(
+        "flex flex-col h-screen fixed z-40 bg-white/90 backdrop-blur-md border-r border-farmlink-lightgreen/20 shadow-xl transition-all duration-300 ease-in-out",
+        collapsed ? "w-20" : "w-64"
+      )}
+    >
+      {/* Logo */}
+      <div className="flex items-center justify-center p-4 border-b border-farmlink-lightgreen/20">
+        <Link to="/" className="flex items-center space-x-3">
+          <div className="relative">
+            <img
+              src="/uploads/logo.png"
+              alt="FarmLink Logo"
+              className={cn(
+                "transition-all duration-300 object-contain",
+                collapsed ? "w-8 h-8" : "w-10 h-10"
+              )}
+            />
+          </div>
           {!collapsed && (
-            <span className="text-sm font-medium text-farmlink-offwhite/90">{item.name}</span>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-farmlink-darkgreen to-farmlink-green bg-clip-text text-transparent">
+              FarmLink
+            </h1>
           )}
         </Link>
-      ))}
-    </nav>
-  
-    {/* Toggle Button */}
-    <div className="p-4 border-t border-white/10">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-center p-2 text-farmlink-offwhite/90 hover:bg-farmlink-mediumgreen/60 rounded-md transition-colors"
-      >
-        {collapsed ? (
-          <ChevronsRight className="h-5 w-5" />
-        ) : (
-          <ChevronsLeft className="h-5 w-5" />
-        )}
-      </button>
-    </div>
-  </aside>
-  
-  
+      </div>
 
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-2">
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={cn(
+                "group flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
+                isActive 
+                  ? "bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white shadow-lg" 
+                  : "text-farmlink-darkgreen hover:bg-farmlink-lightgreen/20 hover:shadow-md"
+              )}
+            >
+              <item.icon className={cn(
+                "h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110",
+                isActive ? "text-white" : "text-farmlink-green"
+              )} />
+              {!collapsed && (
+                <span className={cn(
+                  "text-sm font-medium transition-colors",
+                  isActive ? "text-white" : "text-farmlink-darkgreen"
+                )}>
+                  {item.name}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Toggle Button */}
+      <div className="p-4 border-t border-farmlink-lightgreen/20">
+        <button
+          onClick={onToggle}
+          className="w-full flex items-center justify-center p-2 text-farmlink-darkgreen hover:bg-farmlink-lightgreen/20 rounded-xl transition-all duration-200 hover:shadow-md"
+        >
+          {collapsed ? (
+            <ChevronsRight className="h-5 w-5" />
+          ) : (
+            <ChevronsLeft className="h-5 w-5" />
+          )}
+        </button>
+      </div>
+    </aside>
   );
 };
 
