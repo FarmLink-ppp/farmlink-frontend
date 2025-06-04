@@ -112,16 +112,16 @@ const Weather = () => {
     switch (activeChart) {
       case "rainfall":
         return (
-          <div className="h-72">
-            <div className="w-full h-full flex items-end justify-between">
+          <div className="h-72 p-4">
+            <div className="w-full h-full flex items-end justify-between bg-gradient-to-t from-farmlink-offwhite/30 to-transparent rounded-xl p-4">
               {rainfallData.map((month, index) => (
-                <div key={index} className="flex flex-col items-center">
+                <div key={index} className="flex flex-col items-center group">
                   <div 
-                    className="w-8 bg-blue-500 rounded-t-md transition-all duration-300" 
+                    className="w-8 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-md transition-all duration-300 hover:from-farmlink-green hover:to-farmlink-mediumgreen shadow-lg group-hover:shadow-xl" 
                     style={{ height: `${month.amount * 30}px` }}
                   ></div>
-                  <span className="text-xs mt-2">{month.month}</span>
-                  <span className="text-xs text-muted-foreground">{month.amount}cm</span>
+                  <span className="text-xs mt-2 font-medium text-farmlink-darkgreen">{month.month}</span>
+                  <span className="text-xs text-farmlink-darkgreen/70 font-semibold">{month.amount}cm</span>
                 </div>
               ))}
             </div>
@@ -129,28 +129,28 @@ const Weather = () => {
         );
       case "temperature":
         return (
-          <div className="h-72">
-            <div className="w-full h-full flex items-end justify-between">
+          <div className="h-72 p-4">
+            <div className="w-full h-full flex items-end justify-between bg-gradient-to-t from-farmlink-offwhite/30 to-transparent rounded-xl p-4">
               {temperatureData.map((month, index) => (
-                <div key={index} className="flex flex-col items-center w-full">
+                <div key={index} className="flex flex-col items-center w-full group">
                   <div className="relative w-8">
                     <div 
-                      className="absolute w-full bg-red-400 rounded-t-md transition-all duration-300" 
+                      className="absolute w-full bg-gradient-to-t from-red-500 to-red-300 rounded-t-md transition-all duration-300 group-hover:from-farmlink-green group-hover:to-farmlink-mediumgreen shadow-lg" 
                       style={{ 
                         height: `${month.high * 2}px`,
                         bottom: `${month.low * 2}px` 
                       }}
                     ></div>
                     <div 
-                      className="absolute w-full bg-blue-400 rounded-b-md transition-all duration-300" 
+                      className="absolute w-full bg-gradient-to-t from-blue-500 to-blue-300 rounded-b-md transition-all duration-300 group-hover:from-blue-600 group-hover:to-blue-400 shadow-lg" 
                       style={{ height: `${month.low * 2}px`, bottom: 0 }}
                     ></div>
                   </div>
-                  <span className="text-xs mt-2">{month.month}</span>
-                  <div className="text-xs text-muted-foreground">
-                    <span className="text-red-400">{month.high}°</span>
+                  <span className="text-xs mt-2 font-medium text-farmlink-darkgreen">{month.month}</span>
+                  <div className="text-xs text-farmlink-darkgreen/70 font-semibold">
+                    <span className="text-red-500">{month.high}°</span>
                     <span> / </span>
-                    <span className="text-blue-400">{month.low}°</span>
+                    <span className="text-blue-500">{month.low}°</span>
                   </div>
                 </div>
               ))}
@@ -159,16 +159,16 @@ const Weather = () => {
         );
       case "humidity":
         return (
-          <div className="h-72">
-            <div className="w-full h-full flex items-end justify-between">
+          <div className="h-72 p-4">
+            <div className="w-full h-full flex items-end justify-between bg-gradient-to-t from-farmlink-offwhite/30 to-transparent rounded-xl p-4">
               {humidityData.map((month, index) => (
-                <div key={index} className="flex flex-col items-center">
+                <div key={index} className="flex flex-col items-center group">
                   <div 
-                    className="w-8 bg-teal-500 rounded-t-md transition-all duration-300" 
+                    className="w-8 bg-gradient-to-t from-teal-600 to-teal-400 rounded-t-md transition-all duration-300 hover:from-farmlink-green hover:to-farmlink-mediumgreen shadow-lg group-hover:shadow-xl" 
                     style={{ height: `${month.value}px` }}
                   ></div>
-                  <span className="text-xs mt-2">{month.month}</span>
-                  <span className="text-xs text-muted-foreground">{month.value}%</span>
+                  <span className="text-xs mt-2 font-medium text-farmlink-darkgreen">{month.month}</span>
+                  <span className="text-xs text-farmlink-darkgreen/70 font-semibold">{month.value}%</span>
                 </div>
               ))}
             </div>
@@ -181,129 +181,154 @@ const Weather = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center">
-              <CloudSun className="mr-2 h-7 w-7 text-farmlink-green" />
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold flex items-center bg-gradient-to-r from-farmlink-darkgreen to-farmlink-green bg-clip-text text-transparent">
+              <CloudSun className="mr-3 h-8 w-8 text-farmlink-green" />
               Weather Forecast
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-farmlink-darkgreen/70 text-lg font-medium">
               Monitor weather conditions for better farming decisions
             </p>
           </div>
           <Select value={selectedLocation} onValueChange={handleLocationChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[200px] bg-white/80 backdrop-blur-sm border-2 border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:border-farmlink-green focus:border-farmlink-green transition-all duration-300 rounded-xl shadow-lg">
               <SelectValue placeholder="Select location" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white/95 backdrop-blur-sm border-2 border-farmlink-lightgreen/30 shadow-xl rounded-xl">
               {locations.map(location => (
-                <SelectItem key={location.id} value={location.id}>{location.name}</SelectItem>
+                <SelectItem 
+                  key={location.id} 
+                  value={location.id}
+                  className="text-farmlink-darkgreen hover:bg-farmlink-lightgreen/20 focus:bg-farmlink-lightgreen/30 transition-colors duration-200"
+                >
+                  {location.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {loading ? (
-              <Card className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-farmlink-green mx-auto"></div>
-                  <p className="mt-4">Loading weather data...</p>
-                </div>
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden">
+                <CardContent className="flex items-center justify-center h-64">
+                  <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-farmlink-lightgreen border-t-farmlink-green mx-auto"></div>
+                    <p className="text-farmlink-darkgreen font-medium text-lg">Loading weather data...</p>
+                  </div>
+                </CardContent>
               </Card>
             ) : (
-              <WeatherCard data={weatherData} />
+              <div className="transform hover:scale-[1.02] transition-all duration-300">
+                <WeatherCard data={weatherData} />
+              </div>
             )}
           </div>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Conditions</CardTitle>
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white">
+              <CardTitle className="text-xl font-bold">Current Conditions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Thermometer className="h-5 w-5 text-blue-500" />
+            <CardContent className="p-6 space-y-6">
+              <div className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-xl border border-blue-200/30 hover:shadow-md transition-all duration-300">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-full mr-4 shadow-lg">
+                  <Thermometer className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Temperature</p>
-                  <p className="font-semibold">{weatherData.temperature}°C</p>
+                  <p className="text-sm text-farmlink-darkgreen/70 font-medium">Temperature</p>
+                  <p className="font-bold text-xl text-farmlink-darkgreen">{weatherData.temperature}°C</p>
                 </div>
               </div>
               
-              <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Droplet className="h-5 w-5 text-blue-500" />
+              <div className="flex items-center p-4 bg-gradient-to-r from-cyan-50 to-cyan-100/50 rounded-xl border border-cyan-200/30 hover:shadow-md transition-all duration-300">
+                <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 p-3 rounded-full mr-4 shadow-lg">
+                  <Droplet className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Humidity</p>
-                  <p className="font-semibold">{weatherData.humidity}%</p>
+                  <p className="text-sm text-farmlink-darkgreen/70 font-medium">Humidity</p>
+                  <p className="font-bold text-xl text-farmlink-darkgreen">{weatherData.humidity}%</p>
                 </div>
               </div>
               
-              <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <Wind className="h-5 w-5 text-blue-500" />
+              <div className="flex items-center p-4 bg-gradient-to-r from-indigo-50 to-indigo-100/50 rounded-xl border border-indigo-200/30 hover:shadow-md transition-all duration-300">
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-3 rounded-full mr-4 shadow-lg">
+                  <Wind className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Wind Speed</p>
-                  <p className="font-semibold">{weatherData.windSpeed} km/h</p>
+                  <p className="text-sm text-farmlink-darkgreen/70 font-medium">Wind Speed</p>
+                  <p className="font-bold text-xl text-farmlink-darkgreen">{weatherData.windSpeed} km/h</p>
                 </div>
               </div>
               
-              <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full mr-3">
-                  <MapPin className="h-5 w-5 text-blue-500" />
+              <div className="flex items-center p-4 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl border border-emerald-200/30 hover:shadow-md transition-all duration-300">
+                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-3 rounded-full mr-4 shadow-lg">
+                  <MapPin className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Precipitation Chance</p>
-                  <p className="font-semibold">20%</p>
+                  <p className="text-sm text-farmlink-darkgreen/70 font-medium">Precipitation Chance</p>
+                  <p className="font-bold text-xl text-farmlink-darkgreen">20%</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Climate Analytics</h2>
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-farmlink-darkgreen to-farmlink-green bg-clip-text text-transparent">Climate Analytics</h2>
           
-          <Tabs value={activeChart} onValueChange={setActiveChart}>
-            <TabsList>
-              <TabsTrigger value="rainfall">Rainfall</TabsTrigger>
-              <TabsTrigger value="temperature">Temperature</TabsTrigger>
-              <TabsTrigger value="humidity">Humidity</TabsTrigger>
+          <Tabs value={activeChart} onValueChange={setActiveChart} className="space-y-6">
+            <TabsList className="bg-white/80 backdrop-blur-sm border-2 border-farmlink-lightgreen/30 p-1 rounded-xl shadow-lg">
+              <TabsTrigger 
+                value="rainfall"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-farmlink-green data-[state=active]:to-farmlink-mediumgreen data-[state=active]:text-white text-farmlink-darkgreen font-medium px-6 py-2 rounded-lg transition-all duration-300"
+              >
+                Rainfall
+              </TabsTrigger>
+              <TabsTrigger 
+                value="temperature"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-farmlink-green data-[state=active]:to-farmlink-mediumgreen data-[state=active]:text-white text-farmlink-darkgreen font-medium px-6 py-2 rounded-lg transition-all duration-300"
+              >
+                Temperature
+              </TabsTrigger>
+              <TabsTrigger 
+                value="humidity"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-farmlink-green data-[state=active]:to-farmlink-mediumgreen data-[state=active]:text-white text-farmlink-darkgreen font-medium px-6 py-2 rounded-lg transition-all duration-300"
+              >
+                Humidity
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="rainfall" className="pt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Annual Rainfall Distribution</CardTitle>
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+                  <CardTitle className="text-xl font-bold">Annual Rainfall Distribution</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   {renderChart()}
                 </CardContent>
               </Card>
             </TabsContent>
             
             <TabsContent value="temperature" className="pt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Temperature Trends</CardTitle>
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-red-500 to-orange-500 text-white">
+                  <CardTitle className="text-xl font-bold">Temperature Trends</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   {renderChart()}
                 </CardContent>
               </Card>
             </TabsContent>
             
             <TabsContent value="humidity" className="pt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Humidity Patterns</CardTitle>
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-teal-600 to-teal-500 text-white">
+                  <CardTitle className="text-xl font-bold">Humidity Patterns</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   {renderChart()}
                 </CardContent>
               </Card>
@@ -311,21 +336,21 @@ const Weather = () => {
           </Tabs>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Weather Alerts</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+              <CardTitle className="text-xl font-bold">Weather Alerts</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-3 border border-yellow-200 bg-yellow-50 rounded-md">
-                  <p className="font-medium text-yellow-800">Light Rain Advisory</p>
-                  <p className="text-sm text-yellow-700">
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div className="p-4 border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                  <p className="font-bold text-amber-800 text-lg mb-2">Light Rain Advisory</p>
+                  <p className="text-amber-700 leading-relaxed">
                     Expected light rain tomorrow afternoon. Consider adjusting irrigation schedules.
                   </p>
                 </div>
                 <button 
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-farmlink-green hover:text-farmlink-darkgreen font-semibold transition-colors duration-200 hover:underline decoration-2 underline-offset-4"
                   onClick={() => {
                     toast({
                       title: "Alert Subscription Updated",
@@ -334,29 +359,38 @@ const Weather = () => {
                     });
                   }}
                 >
-                  Subscribe to weather alerts
+                  Subscribe to weather alerts →
                 </button>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Farming Recommendations</CardTitle>
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white">
+              <CardTitle className="text-xl font-bold">Farming Recommendations</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-6">
+              <div className="space-y-6">
                 <div>
-                  <h4 className="font-semibold">Based on current forecast:</h4>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li className="text-sm">Optimal planting conditions for the next 48 hours</li>
-                    <li className="text-sm">Delay fertilizer application until after Thursday's rain</li>
-                    <li className="text-sm">Good conditions for harvesting mature crops tomorrow</li>
+                  <h4 className="font-bold text-farmlink-darkgreen text-lg mb-3">Based on current forecast:</h4>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <div className="w-2 h-2 bg-farmlink-green rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                      <span className="text-farmlink-darkgreen leading-relaxed">Optimal planting conditions for the next 48 hours</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="w-2 h-2 bg-farmlink-green rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                      <span className="text-farmlink-darkgreen leading-relaxed">Delay fertilizer application until after Thursday's rain</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="w-2 h-2 bg-farmlink-green rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                      <span className="text-farmlink-darkgreen leading-relaxed">Good conditions for harvesting mature crops tomorrow</span>
+                    </li>
                   </ul>
                 </div>
-                <div className="pt-2 border-t">
+                <div className="pt-4 border-t border-farmlink-lightgreen/30">
                   <button 
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-farmlink-green hover:text-farmlink-darkgreen font-semibold transition-colors duration-200 hover:underline decoration-2 underline-offset-4"
                     onClick={() => {
                       toast({
                         title: "Custom Recommendation",
@@ -365,7 +399,7 @@ const Weather = () => {
                       });
                     }}
                   >
-                    Request custom recommendations
+                    Request custom recommendations →
                   </button>
                 </div>
               </div>
