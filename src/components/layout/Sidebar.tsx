@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   User,
+  UserPlus,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -31,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     { name: "Tasks", href: "/tasks", icon: CalendarDays },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Land Management", href: "/land-management", icon: Crop },
+    { name: "Workers", href: "/workers", icon: UserPlus },
     { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
   ];

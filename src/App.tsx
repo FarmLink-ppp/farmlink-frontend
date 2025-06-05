@@ -17,6 +17,7 @@ import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Workers from "./pages/Workers";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/land-management" element={<LandManagement />} />
+          <Route path="/workers" element={<Workers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
