@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -8,11 +7,11 @@ import {
   MessageSquare,
   CalendarDays,
   Leaf,
-  CloudSun,
   Settings,
   Crop,
   ChevronsLeft,
   ChevronsRight,
+  User,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -30,9 +29,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     { name: "Community", href: "/community", icon: Users },
     { name: "Plant Health", href: "/plant-health", icon: Leaf },
     { name: "Tasks", href: "/tasks", icon: CalendarDays },
-    { name: "Weather", href: "/weather", icon: CloudSun },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Land Management", href: "/land-management", icon: Crop },
+    { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 

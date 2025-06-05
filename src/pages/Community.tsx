@@ -55,14 +55,6 @@ const mockPosts = [
   },
 ];
 
-const trendingTopics = [
-  "Organic Farming",
-  "Irrigation Systems", 
-  "Crop Disease",
-  "Sustainable Practices",
-  "Market Prices",
-  "Equipment Sharing",
-];
 
 const Community = () => {
   const [newPost, setNewPost] = useState("");
@@ -304,27 +296,7 @@ const Community = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-farmlink-darkgreen">Trending Topics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {trendingTopics.map((topic, index) => (
-                    <Button 
-                      key={index} 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleTopicClick(topic)}
-                      className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
-                    >
-                      #{topic.replace(" ", "")}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
+           
             <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-4">
                 <CardTitle className="text-farmlink-darkgreen">Daily Farming Tip</CardTitle>
@@ -340,26 +312,7 @@ const Community = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-farmlink-darkgreen">Top Contributors</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {["Sarah Johnson", "Michael Chen", "Maria Rodriguez", "Ahmed Hassan"].map(
-                  (name, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-farmlink-green/20 to-farmlink-mediumgreen/20 flex items-center justify-center mr-3 text-farmlink-darkgreen font-medium">
-                          {name[0]}
-                        </div>
-                        <span className="text-farmlink-darkgreen">{name}</span>
-                      </div>
-                      <span className="text-xs text-farmlink-darkgreen/60">{32 - index * 5} posts</span>
-                    </div>
-                  )
-                )}
-              </CardContent>
-            </Card>
+            
           </div>
         </div>
       </div>

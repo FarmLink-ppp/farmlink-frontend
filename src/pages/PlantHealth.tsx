@@ -21,10 +21,9 @@ const PlantHealth = () => {
         </div>
 
         <Tabs defaultValue="diagnose">
-          <TabsList className="grid grid-cols-3 mb-6 w-full md:w-[400px]">
+          <TabsList className="grid grid-cols-2 mb-6 w-full md:w-[400px]">
             <TabsTrigger value="diagnose">Diagnose</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="guides">Guides</TabsTrigger>
           </TabsList>
           
           <TabsContent value="diagnose" className="space-y-6">
@@ -127,49 +126,7 @@ const PlantHealth = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="guides">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "Common Crop Diseases",
-                  description: "Learn to identify and treat the most common diseases affecting major crops",
-                  image: "https://images.unsplash.com/photo-1553342237-7ed900af436e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                },
-                {
-                  title: "Organic Disease Control",
-                  description: "Natural and organic methods to prevent and treat plant diseases",
-                  image: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                },
-                {
-                  title: "Seasonal Plant Care",
-                  description: "Season-specific guidelines for maintaining healthy plants all year round",
-                  image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                },
-              ].map((guide, index) => (
-                <Card key={index} className="overflow-hidden">
-                  <div className="h-48 overflow-hidden">
-                    <img 
-                      src={guide.image} 
-                      alt={guide.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{guide.title}</CardTitle>
-                    <CardDescription>{guide.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <a 
-                      href="#" 
-                      className="text-primary hover:underline"
-                    >
-                      Read Guide
-                    </a>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+       
         </Tabs>
       </div>
     </MainLayout>

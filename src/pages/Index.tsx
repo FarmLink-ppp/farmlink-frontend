@@ -2,13 +2,13 @@
 import React from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import StatCard from "@/components/dashboard/StatCard";
+import WeatherWidget from "@/components/dashboard/WeatherWidget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Leaf,
   Users,
-  CloudSun,
   Calendar,
   TrendingUp,
   AlertTriangle,
@@ -17,7 +17,8 @@ import {
   ArrowRight,
   Sparkles,
   Target,
-  Zap
+  Zap,
+  Lightbulb
 } from "lucide-react";
 
 const Index = () => {
@@ -56,36 +57,11 @@ const Index = () => {
     },
   ];
 
-  const recentActivities = [
-    {
-      icon: <Leaf className="h-5 w-5 text-farmlink-green" />,
-      title: "Plant Health Check Completed",
-      description: "Tomato Field A - 45 plants scanned",
-      time: "2 hours ago",
-      status: "success"
-    },
-    {
-      icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
-      title: "Pest Alert Detected",
-      description: "Aphids spotted in Sector B",
-      time: "4 hours ago", 
-      status: "warning"
-    },
-    {
-      icon: <CloudSun className="h-5 w-5 text-blue-500" />,
-      title: "Weather Update",
-      description: "Rain expected tomorrow 2-4 PM",
-      time: "6 hours ago",
-      status: "info"
-    },
-    {
-      icon: <Users className="h-5 w-5 text-farmlink-mediumgreen" />,
-      title: "Community Question Answered",
-      description: "Helped Sarah with irrigation timing",
-      time: "1 day ago",
-      status: "success"
-    },
-  ];
+  const dailyTip = {
+    title: "Today's Farming Tip",
+    content: "Water your plants early in the morning to reduce evaporation and give them the best start to the day. This helps conserve water and ensures your plants stay hydrated longer.",
+    category: "Water Management"
+  };
 
   const upcomingTasks = [
     {
@@ -154,41 +130,39 @@ const Index = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Daily Tip */}
           <div className="lg:col-span-2">
             <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-farmlink-darkgreen flex items-center">
-                  <Zap className="w-5 h-5 mr-2 text-farmlink-green" />
-                  Recent Activity
+                  <Lightbulb className="w-5 h-5 mr-2 text-farmlink-green" />
+                  {dailyTip.title}
                 </CardTitle>
-                <Button variant="ghost" className="text-farmlink-green hover:text-farmlink-mediumgreen">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                <Badge variant="secondary" className="bg-farmlink-lightgreen/20 text-farmlink-darkgreen">
+                  {dailyTip.category}
+                </Badge>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <div key={index} className="flex items-start space-x-4 p-4 rounded-xl bg-farmlink-offwhite/30 hover:bg-farmlink-offwhite/50 transition-all duration-200 group">
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
-                        activity.status === 'success' ? 'bg-farmlink-green/20' :
-                        activity.status === 'warning' ? 'bg-yellow-100' :
-                        'bg-blue-100'
-                      } group-hover:scale-110 transition-transform duration-200`}>
-                        {activity.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-farmlink-darkgreen">{activity.title}</p>
-                        <p className="text-farmlink-darkgreen/70">{activity.description}</p>
-                        <p className="text-sm text-farmlink-darkgreen/50 mt-1">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="p-6 rounded-xl bg-gradient-to-br from-farmlink-green/5 to-farmlink-mediumgreen/5 border border-farmlink-lightgreen/20">
+                  <p className="text-farmlink-darkgreen/80 leading-relaxed text-lg">
+                    {dailyTip.content}
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    className="mt-4 text-farmlink-green hover:text-farmlink-mediumgreen hover:bg-farmlink-lightgreen/10"
+                  >
+                    Learn More
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Weather Widget */}
+          <div>
+            <WeatherWidget />
           </div>
 
           {/* Upcoming Tasks */}
@@ -232,31 +206,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-farmlink-darkgreen">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { icon: Leaf, label: "Scan Plants", color: "from-farmlink-green to-farmlink-mediumgreen" },
-                { icon: CloudSun, label: "Check Weather", color: "from-blue-500 to-blue-600" },
-                { icon: Users, label: "Ask Community", color: "from-farmlink-mediumgreen to-farmlink-lightgreen" },
-                { icon: Calendar, label: "Add Task", color: "from-farmlink-darkgreen to-farmlink-green" }
-              ].map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className={`h-20 flex-col space-y-2 bg-gradient-to-br ${action.color} text-white border-0 hover:shadow-lg hover:scale-105 transition-all duration-200`}
-                >
-                  <action.icon className="h-6 w-6" />
-                  <span className="text-sm font-medium">{action.label}</span>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+    
       </div>
     </MainLayout>
   );
