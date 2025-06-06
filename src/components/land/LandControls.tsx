@@ -1,9 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crop, Layers, TrashIcon, Sparkles } from "lucide-react";
-import { CropType, CROP_COLORS, LandPlot } from '@/types/land';
+import { CropType, CROP_COLORS, LandPlot } from "@/types";
 
 interface LandControlsProps {
   onCropSelect: (crop: CropType, color: string) => void;
@@ -14,13 +13,13 @@ interface LandControlsProps {
   plots: LandPlot[];
 }
 
-const LandControls: React.FC<LandControlsProps> = ({ 
-  onCropSelect, 
-  onStartDrawing, 
-  onStopDrawing, 
-  onClearLastPlot, 
+const LandControls: React.FC<LandControlsProps> = ({
+  onCropSelect,
+  onStartDrawing,
+  onStopDrawing,
+  onClearLastPlot,
   isDrawing,
-  plots
+  plots,
 }) => {
   const crops: CropType[] = ["Corn", "Wheat", "Soybeans", "Cotton", "Rice"];
   const [selectedCrop, setSelectedCrop] = useState<CropType>("Corn");
@@ -70,8 +69,8 @@ const LandControls: React.FC<LandControlsProps> = ({
                   key={crop}
                   variant={selectedCrop === crop ? "default" : "outline"}
                   className={`justify-start ${
-                    selectedCrop === crop 
-                      ? "bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white" 
+                    selectedCrop === crop
+                      ? "bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white"
                       : "border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
                   }`}
                   onClick={() => handleCropSelect(crop)}
@@ -91,12 +90,12 @@ const LandControls: React.FC<LandControlsProps> = ({
               ))}
             </div>
           </div>
-          
+
           <div className="space-y-3">
-            <Button 
+            <Button
               className={`w-full ${
-                isDrawing 
-                  ? "bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white" 
+                isDrawing
+                  ? "bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white"
                   : "bg-white/70 border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
               }`}
               variant={isDrawing ? "default" : "outline"}
@@ -114,7 +113,7 @@ const LandControls: React.FC<LandControlsProps> = ({
                 </>
               )}
             </Button>
-            <Button 
+            <Button
               className="w-full bg-red-500/10 border-red-300/30 text-red-700 hover:bg-red-500/20"
               variant="outline"
               onClick={onClearLastPlot}
@@ -125,22 +124,29 @@ const LandControls: React.FC<LandControlsProps> = ({
           </div>
         </CardContent>
       </Card>
-      
+
       {plots.length > 0 && (
         <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
           <CardHeader className="pb-3">
-            <CardTitle className="text-farmlink-darkgreen text-sm">Plot Summary</CardTitle>
+            <CardTitle className="text-farmlink-darkgreen text-sm">
+              Plot Summary
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             <div className="space-y-2">
               <p className="text-sm text-farmlink-darkgreen/70">
-                Total plots: <span className="font-medium text-farmlink-darkgreen">{plots.length}</span>
+                Total plots:{" "}
+                <span className="font-medium text-farmlink-darkgreen">
+                  {plots.length}
+                </span>
               </p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {Object.entries(cropAreas).map(([crop, count]) => (
                   <div key={crop} className="flex items-center justify-between">
                     <span className="text-farmlink-darkgreen/70">{crop}:</span>
-                    <span className="text-farmlink-darkgreen font-medium">{count}</span>
+                    <span className="text-farmlink-darkgreen font-medium">
+                      {count}
+                    </span>
                   </div>
                 ))}
               </div>

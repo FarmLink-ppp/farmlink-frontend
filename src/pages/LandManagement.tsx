@@ -1,19 +1,25 @@
-
-import React, { useState } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
-import LandMap from '@/components/land/LandMap';
-import LandControls from '@/components/land/LandControls';
+import React, { useState } from "react";
+import MainLayout from "@/components/layout/MainLayout";
+import LandMap from "@/components/land/LandMap";
+import LandControls from "@/components/land/LandControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CropType, CROP_COLORS, LandPlot } from '@/types/land';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Save, Map, Sparkles } from 'lucide-react';
+import { CropType, CROP_COLORS, LandPlot } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Save, Map, Sparkles } from "lucide-react";
 
 const LandManagement = () => {
   const [plots, setPlots] = useState<LandPlot[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<CropType>("Corn");
-  const [selectedColor, setSelectedColor] = useState<string>(CROP_COLORS["Corn"]);
+  const [selectedColor, setSelectedColor] = useState<string>(
+    CROP_COLORS["Corn"]
+  );
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [savedSuccessfully, setSavedSuccessfully] = useState(false);
 
@@ -44,7 +50,7 @@ const LandManagement = () => {
   const handleSave = () => {
     // In a real app, this would save to a database
     // For now, we'll just simulate saving
-    localStorage.setItem('farmPlots', JSON.stringify(plots));
+    localStorage.setItem("farmPlots", JSON.stringify(plots));
     setSavedSuccessfully(true);
     setTimeout(() => {
       setShowSaveDialog(false);
@@ -71,15 +77,15 @@ const LandManagement = () => {
                 </p>
               </div>
             </div>
-            <Button 
-              onClick={() => setShowSaveDialog(true)} 
+            <Button
+              onClick={() => setShowSaveDialog(true)}
               className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <Save className="mr-2 h-4 w-4" />
               Save Layout
             </Button>
           </div>
-          
+
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-farmlink-lightgreen/20 text-farmlink-darkgreen text-sm font-medium mt-4">
             <Sparkles className="w-4 h-4 mr-2" />
             Interactive farm mapping with crop tracking
@@ -90,7 +96,9 @@ const LandManagement = () => {
           <div className="lg:col-span-2">
             <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 border-b border-farmlink-lightgreen/20">
-                <CardTitle className="text-farmlink-darkgreen">Farm Layout</CardTitle>
+                <CardTitle className="text-farmlink-darkgreen">
+                  Farm Layout
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <LandMap
@@ -124,16 +132,19 @@ const LandManagement = () => {
           </DialogHeader>
           {!savedSuccessfully ? (
             <div className="space-y-4 pt-4">
-              <p className="text-farmlink-darkgreen/70">Save your current farm layout? This will overwrite any previously saved layouts.</p>
+              <p className="text-farmlink-darkgreen/70">
+                Save your current farm layout? This will overwrite any
+                previously saved layouts.
+              </p>
               <div className="flex justify-end space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setShowSaveDialog(false)}
                   className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSave}
                   className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
                 >
@@ -145,9 +156,24 @@ const LandManagement = () => {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-farmlink-green/10 text-farmlink-green mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-check"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
                 </div>
-                <p className="text-farmlink-darkgreen">Your farm layout has been saved successfully!</p>
+                <p className="text-farmlink-darkgreen">
+                  Your farm layout has been saved successfully!
+                </p>
               </div>
             </div>
           )}
