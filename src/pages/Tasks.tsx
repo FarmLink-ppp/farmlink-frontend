@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import TaskCard from "@/components/tasks/TaskCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarDays, Filter, Plus, CheckCircle, Clock, AlertTriangle, Target, Zap } from "lucide-react";
 import TaskCalendar from "@/components/tasks/TaskCalendar";
-import { useToast } from "@/components/ui/use-toast";
+import { useTasks, useCreateTask, useUpdateTaskStatus } from "@/hooks/useTasks";
+import { useWorkers } from "@/hooks/useWorkers";
 
 export interface Task {
   id: number;
@@ -32,58 +32,9 @@ export interface Task {
   status: "pending" | "in-progress" | "completed";
 }
 
-const mockTasks = [
-  {
-    id: 1,
-    title: "Fertilize corn field",
-    description: "Apply organic fertilizer to the east corn field. Follow the recommended dosage of 2kg per acre.",
-    assignee: { name: "John" },
-    dueDate: "Apr 28, 2025",
-    priority: "high" as const,
-    status: "completed" as const,
-  },
-  {
-    id: 2,
-    title: "Water tomato section",
-    description: "Water the tomato section in the greenhouse. Check for any signs of disease while watering.",
-    assignee: { name: "Sarah" },
-    dueDate: "Apr 29, 2025",
-    priority: "medium" as const,
-    status: "pending" as const,
-  },
-  {
-    id: 3,
-    title: "Check irrigation system",
-    description: "Inspect the drip irrigation system for leaks and blockages. Repair any damaged parts.",
-    assignee: { name: "Mike" },
-    dueDate: "Apr 29, 2025",
-    priority: "high" as const,
-    status: "in-progress" as const,
-  },
-  {
-    id: 4,
-    title: "Harvest carrots",
-    description: "Harvest carrots from the north field. Sort and prepare them for market delivery on Thursday.",
-    assignee: { name: "Emma" },
-    dueDate: "Apr 30, 2025",
-    priority: "medium" as const,
-    status: "pending" as const,
-  },
-  {
-    id: 5,
-    title: "Repair tractor",
-    description: "Fix the hydraulic system on the John Deere tractor. Parts have been ordered and will arrive tomorrow.",
-    assignee: { name: "Tom" },
-    dueDate: "May 2, 2025",
-    priority: "low" as const,
-    status: "pending" as const,
-  },
-];
-
 const Tasks = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -93,7 +44,14 @@ const Tasks = () => {
     status: "pending",
   });
   const [filterPriority, setFilterPriority] = useState("all");
-  const { toast } = useToast();
+
+  // Use React Query hooks
+  const { data: tasks = [], isLoading, error } = useTasks();
+  const createTaskMutation = useCreateTask();
+  const updateTaskStatusMutation = useUpdateTaskStatus();
+  
+  // Get workers for assignment
+  const { workers: availableWorkers } = useWorkers();
 
   // Function to filter tasks based on the active tab and priority filter
   const getFilteredTasks = () => {
@@ -117,67 +75,60 @@ const Tasks = () => {
 
   const handleCreateTask = () => {
     if (!newTask.title || !newTask.description || !newTask.dueDate || !newTask.assignee || !newTask.priority) {
-      toast({
-        title: "Missing Fields",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
       return;
     }
 
-    const task: Task = {
-      id: Date.now(),
+    createTaskMutation.mutate({
       title: newTask.title,
       description: newTask.description,
-      dueDate: formatDate(newTask.dueDate),
-      assignee: { name: newTask.assignee },
+      dueDate: newTask.dueDate,
       priority: newTask.priority as "low" | "medium" | "high",
       status: newTask.status as "pending" | "in-progress" | "completed",
-    };
-
-    setTasks([task, ...tasks]);
-    setNewTask({
-      title: "",
-      description: "",
-      dueDate: "",
-      assignee: "",
-      priority: "",
-      status: "pending",
-    });
-    
-    toast({
-      title: "Task Created",
-      description: `"${task.title}" has been added to your tasks.`,
-    });
-    
-    setIsDialogOpen(false);
-  };
-  
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+      assigneeName: newTask.assignee,
+    }, {
+      onSuccess: () => {
+        setNewTask({
+          title: "",
+          description: "",
+          dueDate: "",
+          assignee: "",
+          priority: "",
+          status: "pending",
+        });
+        setIsDialogOpen(false);
+      }
     });
   };
 
   const handleStatusChange = (taskId: number, newStatus: "pending" | "in-progress" | "completed") => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: newStatus } 
-        : task
-    ));
-    
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      toast({
-        title: "Task Updated",
-        description: `"${task.title}" status changed to ${newStatus.replace('-', ' ')}.`,
-      });
-    }
+    updateTaskStatusMutation.mutate({ taskId, status: newStatus });
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farmlink-green mx-auto mb-4"></div>
+            <p className="text-farmlink-darkgreen">Loading tasks...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-farmlink-darkgreen">Failed to load tasks. Please try again.</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   const renderTaskContent = () => {
     return (
@@ -382,13 +333,14 @@ const Tasks = () => {
                         onValueChange={(value) => setNewTask({...newTask, assignee: value})}
                       >
                         <SelectTrigger id="assignee" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
-                          <SelectValue placeholder="Select person" />
+                          <SelectValue placeholder="Select worker" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="John">John</SelectItem>
-                          <SelectItem value="Sarah">Sarah</SelectItem>
-                          <SelectItem value="Mike">Mike</SelectItem>
-                          <SelectItem value="Emma">Emma</SelectItem>
+                          {availableWorkers.map((worker) => (
+                            <SelectItem key={worker.id} value={worker.name}>
+                              {worker.name} - {worker.position}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -432,8 +384,12 @@ const Tasks = () => {
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-farmlink-lightgreen text-farmlink-darkgreen hover:bg-farmlink-offwhite">
                     Cancel
                   </Button>
-                  <Button onClick={handleCreateTask} className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white">
-                    Create Task
+                  <Button 
+                    onClick={handleCreateTask} 
+                    disabled={createTaskMutation.isPending}
+                    className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
+                  >
+                    {createTaskMutation.isPending ? "Creating..." : "Create Task"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

@@ -1,9 +1,17 @@
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
-import LandMap from "@/components/land/LandMap";
-import LandControls from "@/components/land/LandControls";
+import LandDivisionForm from "@/components/land/LandDivisionForm";
+import LandDivisionList from "@/components/land/LandDivisionList";
+import PlantForm, { CreatePlantDto } from "@/components/land/PlantForm";
+import PlantList from "@/components/land/PlantList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CropType, CROP_COLORS, LandPlot } from "@/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  CreateLandDivisionDto,
+  LandDivision,
+  Plant,
+  CultivationStatus,
+} from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -11,46 +19,76 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Save, Map, Sparkles } from "lucide-react";
+import { Save, Map, Sparkles, BarChart3, Leaf } from "lucide-react";
 
 const LandManagement = () => {
-  const [plots, setPlots] = useState<LandPlot[]>([]);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [selectedCrop, setSelectedCrop] = useState<CropType>("Corn");
-  const [selectedColor, setSelectedColor] = useState<string>(
-    CROP_COLORS["Corn"]
-  );
+  const [divisions, setDivisions] = useState<LandDivision[]>([]);
+  const [plants, setPlants] = useState<Plant[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [savedSuccessfully, setSavedSuccessfully] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCropSelect = (crop: CropType, color: string) => {
-    setSelectedCrop(crop);
-    setSelectedColor(color);
+  const handleCreatePlant = async (data: CreatePlantDto) => {
+    setIsLoading(true);
+
+    const newPlant: Plant = {
+      id: Date.now(),
+      name: data.name,
+      description: data.description,
+      image_url: data.image_url,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    setTimeout(() => {
+      setPlants([...plants, newPlant]);
+      setIsLoading(false);
+    }, 1000);
   };
 
-  const handleStartDrawing = () => {
-    setIsDrawing(true);
+  const handleCreateDivision = async (data: CreateLandDivisionDto) => {
+    setIsLoading(true);
+
+    const selectedPlant = data.plantId
+      ? plants.find((p) => p.id === data.plantId)
+      : undefined;
+
+    const newDivision: LandDivision = {
+      id: Date.now(),
+      name: data.name,
+      area: data.area,
+      cultivation_status: data.cultivationStatus,
+      geolocation: data.geolocation,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      farm_id: 1,
+      plant_id: data.plantId,
+      plant: selectedPlant,
+    };
+
+    setTimeout(() => {
+      setDivisions([...divisions, newDivision]);
+      setIsLoading(false);
+    }, 1000);
   };
 
-  const handleStopDrawing = () => {
-    setIsDrawing(false);
+  const handleDeleteDivision = (id: number) => {
+    setDivisions(divisions.filter((d) => d.id !== id));
   };
 
-  const handlePlotComplete = (plot: LandPlot) => {
-    setPlots([...plots, plot]);
-    setIsDrawing(false);
-  };
-
-  const handleClearLastPlot = () => {
-    if (plots.length > 0) {
-      setPlots(plots.slice(0, -1));
-    }
+  const handleDeletePlant = (id: number) => {
+    setPlants(plants.filter((p) => p.id !== id));
+    // Also update divisions that reference this plant
+    setDivisions(
+      divisions.map((d) =>
+        d.plant_id === id ? { ...d, plant_id: undefined, plant: undefined } : d
+      )
+    );
   };
 
   const handleSave = () => {
-    // In a real app, this would save to a database
-    // For now, we'll just simulate saving
-    localStorage.setItem("farmPlots", JSON.stringify(plots));
+    localStorage.setItem("landDivisions", JSON.stringify(divisions));
+    localStorage.setItem("plants", JSON.stringify(plants));
     setSavedSuccessfully(true);
     setTimeout(() => {
       setShowSaveDialog(false);
@@ -58,10 +96,17 @@ const LandManagement = () => {
     }, 1500);
   };
 
+  // Calculate statistics
+  const totalArea = divisions.reduce((sum, div) => sum + div.area, 0);
+  const statusCounts = divisions.reduce((acc, div) => {
+    acc[div.cultivation_status] = (acc[div.cultivation_status] || 0) + 1;
+    return acc;
+  }, {} as Record<CultivationStatus, number>);
+
   return (
     <MainLayout>
       <div className="space-y-8 animate-fade-in">
-        {/* Modern Header Section */}
+        {/* Header Section */}
         <div className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 rounded-2xl p-8 border border-farmlink-lightgreen/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -73,7 +118,7 @@ const LandManagement = () => {
                   Land Management
                 </h1>
                 <p className="text-farmlink-darkgreen/70 text-lg">
-                  Manage your farm's land divisions and crop allocation
+                  Manage your plants and land divisions
                 </p>
               </div>
             </div>
@@ -82,59 +127,165 @@ const LandManagement = () => {
               className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <Save className="mr-2 h-4 w-4" />
-              Save Layout
+              Save Data
             </Button>
           </div>
 
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-farmlink-lightgreen/20 text-farmlink-darkgreen text-sm font-medium mt-4">
             <Sparkles className="w-4 h-4 mr-2" />
-            Interactive farm mapping with crop tracking
+            Plant cultivation and land division management
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 border-b border-farmlink-lightgreen/20">
-                <CardTitle className="text-farmlink-darkgreen">
-                  Farm Layout
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <LandMap
-                  selectedCrop={selectedCrop}
-                  color={selectedColor}
-                  isDrawing={isDrawing}
-                  onPlotComplete={handlePlotComplete}
+        <Tabs defaultValue="divisions" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-white/70 backdrop-blur-sm">
+            <TabsTrigger
+              value="divisions"
+              className="data-[state=active]:bg-farmlink-green/10"
+            >
+              Land Divisions ({divisions.length})
+            </TabsTrigger>
+            <TabsTrigger
+              value="plants"
+              className="data-[state=active]:bg-farmlink-green/10"
+            >
+              Plants ({plants.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="divisions" className="mt-6">
+            {/* Statistics Cards */}
+            {divisions.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <BarChart3 className="h-5 w-5 text-farmlink-green" />
+                      <div>
+                        <p className="text-sm text-farmlink-darkgreen/70">
+                          Total Area
+                        </p>
+                        <p className="text-lg font-semibold text-farmlink-darkgreen">
+                          {totalArea} ha
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div>
+                        <p className="text-sm text-farmlink-darkgreen/70">
+                          Planted
+                        </p>
+                        <p className="text-lg font-semibold text-farmlink-darkgreen">
+                          {statusCounts[CultivationStatus.PLANTED] || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div>
+                        <p className="text-sm text-farmlink-darkgreen/70">
+                          Harvested
+                        </p>
+                        <p className="text-lg font-semibold text-farmlink-darkgreen">
+                          {statusCounts[CultivationStatus.HARVESTED] || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <div>
+                        <p className="text-sm text-farmlink-darkgreen/70">
+                          Fallow
+                        </p>
+                        <p className="text-lg font-semibold text-farmlink-darkgreen">
+                          {statusCounts[CultivationStatus.FALLOW] || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div>
+                <LandDivisionForm
+                  onSubmit={handleCreateDivision}
+                  plants={plants}
+                  isLoading={isLoading}
                 />
-              </CardContent>
-            </Card>
-          </div>
-          <div>
-            <LandControls
-              onCropSelect={handleCropSelect}
-              onStartDrawing={handleStartDrawing}
-              onStopDrawing={handleStopDrawing}
-              onClearLastPlot={handleClearLastPlot}
-              isDrawing={isDrawing}
-              plots={plots}
-            />
-          </div>
-        </div>
+              </div>
+
+              <div className="lg:col-span-2">
+                <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 border-b border-farmlink-lightgreen/20">
+                    <CardTitle className="text-farmlink-darkgreen">
+                      Land Divisions ({divisions.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <LandDivisionList
+                      divisions={divisions}
+                      onDelete={handleDeleteDivision}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="plants" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div>
+                <PlantForm onSubmit={handleCreatePlant} isLoading={isLoading} />
+              </div>
+
+              <div className="lg:col-span-2">
+                <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 border-b border-farmlink-lightgreen/20">
+                    <CardTitle className="text-farmlink-darkgreen flex items-center">
+                      <Leaf className="mr-2 h-5 w-5" />
+                      Plants ({plants.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <PlantList plants={plants} onDelete={handleDeletePlant} />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent className="bg-white border-farmlink-lightgreen/20">
           <DialogHeader>
             <DialogTitle className="text-farmlink-darkgreen">
-              {savedSuccessfully ? "Saved Successfully!" : "Save Farm Layout"}
+              {savedSuccessfully ? "Saved Successfully!" : "Save Data"}
             </DialogTitle>
           </DialogHeader>
           {!savedSuccessfully ? (
             <div className="space-y-4 pt-4">
               <p className="text-farmlink-darkgreen/70">
-                Save your current farm layout? This will overwrite any
-                previously saved layouts.
+                Save your plants and land divisions? This will overwrite any
+                previously saved data.
               </p>
               <div className="flex justify-end space-x-2">
                 <Button
@@ -172,7 +323,7 @@ const LandManagement = () => {
                   </svg>
                 </div>
                 <p className="text-farmlink-darkgreen">
-                  Your farm layout has been saved successfully!
+                  Your data has been saved successfully!
                 </p>
               </div>
             </div>
