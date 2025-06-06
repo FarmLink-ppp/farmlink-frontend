@@ -12,6 +12,8 @@ import {
   MessageResponse,
   ApiError,
   ProfileResponse,
+  ScanWithDiagnosis,
+  CreateScanResponse,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -34,6 +36,13 @@ class ApiClient {
     const token = this.getTokenFromCookie();
     return {
       "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  }
+
+  private getAuthHeadersForFormData(): HeadersInit {
+    const token = this.getTokenFromCookie();
+    return {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
   }
@@ -142,6 +151,44 @@ class ApiClient {
     } catch {
       return false;
     }
+  }
+
+  async createPlantHealthScan(file: File): Promise<CreateScanResponse> {
+    const formData = new FormData();
+    formData.append("plantImage", file);
+
+    const url = `${API_BASE_URL}/plant-health/scan`;
+    const config: RequestInit = {
+      method: "POST",
+      headers: this.getAuthHeadersForFormData(),
+      credentials: "include",
+      body: formData,
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const errorData: ApiError = await response.json().catch(() => ({
+          message: `HTTP error! status: ${response.status}`,
+          statusCode: response.status,
+        }));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  }
+
+  async getAllDiagnosis(): Promise<ScanWithDiagnosis[]> {
+    return this.request<ScanWithDiagnosis[]>("/plant-health/diagnosis");
   }
 }
 
