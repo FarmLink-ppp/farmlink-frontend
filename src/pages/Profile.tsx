@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import PostCard from "@/components/community/PostCard";
@@ -160,6 +159,7 @@ const Profile = () => {
               {userPosts.map((post) => (
                 <PostCard
                   key={post.id}
+                  id={post.id}
                   author={post.author}
                   date={post.date}
                   content={post.content}
@@ -193,6 +193,7 @@ const Profile = () => {
               {savedPosts.map((post) => (
                 <PostCard
                   key={post.id}
+                  id={post.id}
                   author={post.author}
                   date={post.date}
                   content={post.content}

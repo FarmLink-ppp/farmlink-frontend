@@ -63,7 +63,19 @@ class ApiClient {
         );
       }
 
-      return response.json();
+      // Handle empty response (204 No Content or content-length 0)
+      const contentLength = response.headers.get("content-length");
+      if (response.status === 204 || contentLength === "0") {
+        // @ts-ignore
+        return {};
+      }
+      // Defensive: also check if response has no body
+      const text = await response.text();
+      if (!text) {
+        // @ts-ignore
+        return {};
+      }
+      return JSON.parse(text);
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -155,6 +167,19 @@ class ApiClient {
     return this.request<PostResponse>("/posts", {
       method: "POST",
       body: JSON.stringify(postData),
+    });
+  }
+
+  async likePost(postId: number): Promise<MessageResponse> {
+    console.log(postId);
+    return this.request<MessageResponse>(`/posts/like/${postId}`, {
+      method: "POST",
+    });
+  }
+
+  async unlikePost(postId: number): Promise<MessageResponse> {
+    return this.request<MessageResponse>(`/posts/like/${postId}`, {
+      method: "DELETE",
     });
   }
 }

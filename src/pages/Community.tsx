@@ -20,47 +20,9 @@ interface Post {
   comments: number;
 }
 
-const mockPosts = [
-  {
-    id: 1,
-    author: { name: "Mike Lewis", avatar: "" },
-    date: "2 hours ago",
-    content: "Has anyone tried the new organic fertilizer from GreenGrow? I'm considering it for my tomato fields but wanted to hear some experiences first.",
-    likes: 12,
-    comments: 8,
-  },
-  {
-    id: 2,
-    author: { name: "Sarah Johnson", avatar: "" },
-    date: "6 hours ago",
-    content: "Great results with my crop rotation strategy this season! Alternating between corn, soybeans, and cover crops has really improved soil health.",
-    image: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    likes: 24,
-    comments: 6,
-  },
-  {
-    id: 3,
-    author: { name: "Emma Davis", avatar: "" },
-    date: "Yesterday",
-    content: "Looking for advice on dealing with aphid infestation in peppers. Tried neem oil with limited success. Any natural solutions you'd recommend?",
-    likes: 7,
-    comments: 14,
-  },
-  {
-    id: 4,
-    author: { name: "Tom Wilson", avatar: "" },
-    date: "2 days ago",
-    content: "Excited to share that our irrigation efficiency improved by 30% after implementing the drip system we discussed at last month's community meetup. Thanks for all the advice!",
-    image: "https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    likes: 36,
-    comments: 9,
-  },
-];
-
-
 const Community = () => {
   const [newPost, setNewPost] = useState("");
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
@@ -259,6 +221,7 @@ const Community = () => {
                 filteredPosts.map((post) => (
                   <PostCard
                     key={post.id}
+                    id={post.id}
                     author={post.author}
                     date={post.date}
                     content={post.content}

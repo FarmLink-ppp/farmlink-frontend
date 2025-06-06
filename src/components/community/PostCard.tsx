@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Heart, Share, Bookmark } from "lucide-react";
 import CommentForm from "./CommentForm";
+import { apiClient } from "@/lib/api";
 
 interface Author {
   name: string;
@@ -25,6 +25,7 @@ export interface PostCardProps {
   image?: string;
   likes: number;
   comments: number;
+  id: number; // Ensure id is required and passed from parent
 }
 
 const PostCard: React.FC<PostCardProps> = ({
@@ -34,6 +35,7 @@ const PostCard: React.FC<PostCardProps> = ({
   image,
   likes: initialLikes,
   comments: initialComments,
+  id,
 }) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -41,13 +43,33 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [commentsList, setCommentsList] = useState<Comment[]>([]);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (liked) {
-      setLikes(likes - 1);
+      try {
+        if (typeof id === "number") {
+          await apiClient.unlikePost(id);
+          setLikes(likes - 1);
+          setLiked(false);
+        } else {
+          console.warn("No postId provided to PostCard for unlikePost");
+        }
+      } catch (error) {
+        console.error("Unlike post error:", error);
+      }
     } else {
-      setLikes(likes + 1);
+      try {
+        console.log("in postcard component", id);
+        if (typeof id === "number") {
+          await apiClient.likePost(id);
+        } else {
+          console.warn("No postId provided to PostCard for likePost");
+        }
+        setLikes(likes + 1);
+        setLiked(true);
+      } catch (error) {
+        console.error("Like post error:", error);
+      }
     }
-    setLiked(!liked);
   };
 
   const handleSave = () => {
