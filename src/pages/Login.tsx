@@ -29,8 +29,15 @@ const Login = () => {
   }, [isAuthenticated, isLoading, navigate, from]);
 
   useEffect(() => {
-    clearError();
-  }, [formData, clearError]);
+    if (error) {
+      toast({
+        title: "Login Error",
+        description: error,
+        variant: "destructive",
+      });
+      clearError();
+    }
+  }, [clearError, error, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
