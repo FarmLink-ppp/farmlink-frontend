@@ -23,17 +23,9 @@ const ChatbotUI: React.FC = () => {
     },
   ]);
   const [input, setInput] = useState("");
-
-  const botResponses = [
-    "For tomatoes showing yellow leaves, this could indicate nitrogen deficiency. Try using a balanced fertilizer with higher nitrogen content and ensure proper watering schedule.",
-    "The best time to plant corn in your region is typically early spring when soil temperatures reach about 55°F (13°C). Check your local frost dates for optimal timing.",
-    "For natural pest control, consider companion planting with marigolds, which repel many harmful insects. Neem oil is also an excellent organic option.",
-    "Based on your location's forecast, I recommend delaying irrigation until Thursday to avoid over-watering. The predicted rainfall should provide adequate moisture.",
-    "Your soil analysis shows good phosphorus levels, but you might want to add potassium for better plant vigor. Consider using wood ash or potassium sulfate.",
-    "That's a great question! For disease prevention, ensure proper air circulation between plants and avoid overhead watering which can spread fungal spores."
-  ];
-
-  const handleSendMessage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleSendMessage = async () => {
     if (input.trim() === "") return;
 
     const userMessage: Message = {
@@ -43,21 +35,40 @@ const ChatbotUI: React.FC = () => {
       timestamp: new Date(),
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
+    try {
+      const response = await fetch("http://localhost:5000/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messageText: input }),
+      });
+
+      const data = await response.json();
       const botMessage: Message = {
         id: messages.length + 2,
-        content: randomResponse,
+        content: data.answer || "Sorry, I couldn't process that.",
         sender: "bot",
         timestamp: new Date(),
       };
 
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
-    }, 1000);
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error contacting the chatbot:", error);
+      const errorMsg: Message = {
+        id: messages.length + 2,
+        content: "⚠️ Sorry, there was an error reaching the chatbot.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
