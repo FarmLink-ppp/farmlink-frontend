@@ -51,7 +51,7 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
           console.error('Error getting location:', error);
         // Add user feedback
         toast.error("Location Error", {
-          description: "Failed to access your location. Please check permissions or enter coordinates manually.",
+          description: `Failed to access your location: ${error.message || 'Unknown error'}. Please check permissions or enter coordinates manually.`,
         });
         }
       );
