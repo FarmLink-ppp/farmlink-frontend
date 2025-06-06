@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-  const { logout, error } = useAuth();
+  const { logout, error, clearError } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -27,8 +27,9 @@ const Header: React.FC<HeaderProps> = () => {
         description: error,
         variant: "destructive",
       });
+      clearError();
     }
-  }, [error, toast]);
+  }, [error, toast, clearError]);
 
   const handleLogout = async () => {
     await logout();
