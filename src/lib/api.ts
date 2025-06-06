@@ -13,6 +13,7 @@ import {
   ApiError,
   ProfileResponse,
 } from "@/types";
+import { CreatePostDto, PostResponse } from "@/types/post";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -142,6 +143,19 @@ class ApiClient {
     } catch {
       return false;
     }
+  }
+
+  async createPost(postData: {
+    title?: string;
+    content?: string;
+    image_urls?: string[];
+    category?: string;
+    user_id?: number;
+  }): Promise<PostResponse> {
+    return this.request<PostResponse>("/posts", {
+      method: "POST",
+      body: JSON.stringify(postData),
+    });
   }
 }
 

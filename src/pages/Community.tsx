@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, MessageSquare, Filter, Send, Image as ImageIcon, Sparkles } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
+import { apiClient } from "@/lib/api";
+import { useContext } from "react";
+import { AuthContext } from "@/contexts/AuthContext";
 interface Post {
   id: number;
   author: { name: string; avatar: string };
@@ -63,30 +65,48 @@ const Community = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const handlePostSubmit = (e: React.FormEvent) => {
+  const { user } = useContext(AuthContext);
+  console.log("user in community page", user);
+  
+  const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPost.trim()) return;
-    
-    const newPostObj = {
-      id: Date.now(),
-      author: { name: "John Doe", avatar: "" },
-      date: "Just now",
-      content: newPost,
-      image: imagePreview || undefined,
-      likes: 0,
-      comments: 0,
-    };
-    
-    setPosts([newPostObj, ...posts]);
-    setNewPost("");
-    setImagePreview(null);
-    
-    toast({
-      title: "Post created",
-      description: "Your post has been published to the community.",
-      duration: 3000,
-    });
+    if (!newPost.trim() && !imagePreview) return;
+    try {
+      // Call backend API to create post
+      const created = await apiClient.createPost({
+        content: newPost,
+        image_urls: imagePreview ? [imagePreview] : [],
+        category: "DISCUSSIONS",
+      });
+      setPosts([
+        {
+          id: created.id,
+          author: { name: user?.username || "Unknown", avatar: "" },
+          date: created.date,
+          content: created.content,
+          image: created.image || undefined,
+          likes: created.likes ?? 0,
+          comments: created.comments ?? 0,
+        },
+        ...posts,
+      ]);
+      setNewPost("");
+      setImagePreview(null);
+      toast({
+        title: "Post created",
+        description: "Your post has been published to the community.",
+        duration: 3000,
+      });
+    } catch (error: any) {
+      // Log the error to the console for debugging
+      console.error("Create post error:", error);
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to create post.",
+        duration: 3000,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
