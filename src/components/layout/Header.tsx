@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-  const { logout, error, clearError } = useAuth();
+  const { logout, error } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -28,18 +28,10 @@ const Header: React.FC<HeaderProps> = () => {
         variant: "destructive",
       });
     }
-  }, [error, toast, clearError]);
+  }, [error, toast]);
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (err) {
-      toast({
-        title: "Logout Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await logout();
   };
   return (
     <header className="w-full sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-farmlink-lightgreen/20 transition-all duration-300">
