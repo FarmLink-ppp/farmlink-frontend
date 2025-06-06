@@ -1,18 +1,38 @@
 
-export interface LandPlot {
-  id: string;
+export interface LandDivision {
+  id: number;
   name: string;
-  crop: string;
-  color: string;
-  coordinates: [number, number][];
+  area: number;
+  cultivation_status: CultivationStatus;
+  geolocation: string;
+  created_at: string;
+  updated_at: string;
+  farm_id: number;
+  plant_id?: number;
+  plant?: Plant;
 }
 
-export type CropType = "Corn" | "Wheat" | "Soybeans" | "Cotton" | "Rice";
+export interface Plant {
+  id: number;
+  name: string;
+  description?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
 
-export const CROP_COLORS: Record<CropType, string> = {
-  Corn: "#FFD700",
-  Wheat: "#DAA520",
-  Soybeans: "#90EE90",
-  Cotton: "#FFFFFF",
-  Rice: "#D4AF37"
-};
+export enum CultivationStatus {
+  PLANTED = "PLANTED",
+  HARVESTED = "HARVESTED",
+  FALLOW = "FALLOW"
+}
+
+export interface CreateLandDivisionDto {
+  name: string;
+  area: number;
+  cultivationStatus: CultivationStatus;
+  geolocation: string;
+  plantId?: number;
+}
+
+export interface UpdateLandDivisionDto extends Partial<CreateLandDivisionDto> {}
