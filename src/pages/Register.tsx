@@ -64,7 +64,6 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -248,6 +247,7 @@ const Register = () => {
                       onChange={handleChange}
                       className="h-11 border-2 border-farmlink-lightgreen/30 focus:border-farmlink-green transition-colors"
                       required
+                      autoComplete="username"
                     />
                   </div>
                 </div>
@@ -289,6 +289,7 @@ const Register = () => {
                         onChange={handleChange}
                         className="h-11 pr-12 border-2 border-farmlink-lightgreen/30 focus:border-farmlink-green transition-colors"
                         required
+                        autoComplete="new-password"
                       />
                       <Button
                         type="button"
@@ -322,6 +323,7 @@ const Register = () => {
                         onChange={handleChange}
                         className="h-11 pr-12 border-2 border-farmlink-lightgreen/30 focus:border-farmlink-green transition-colors"
                         required
+                        autoComplete="new-password"
                       />
                       <Button
                         type="button"

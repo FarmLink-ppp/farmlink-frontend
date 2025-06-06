@@ -189,6 +189,7 @@ const Login = () => {
                     onChange={handleInputChange}
                     className="h-12 border-2 border-farmlink-lightgreen/30 focus:border-farmlink-green transition-colors"
                     required
+                    autoComplete="username"
                   />
                 </div>
 
@@ -209,6 +210,7 @@ const Login = () => {
                       onChange={handleInputChange}
                       className="h-12 pr-12 border-2 border-farmlink-lightgreen/30 focus:border-farmlink-green transition-colors"
                       required
+                      autoComplete="current-password"
                     />
                     <Button
                       type="button"
