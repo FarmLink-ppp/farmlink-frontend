@@ -22,6 +22,6 @@ export interface CreateScanResponse {
 }
 
 export interface ScanWithDiagnosis {
-  image_url: string;
+  imageUrl: string;
   diagnostic: PlantHealthDiagnostic | null;
 }

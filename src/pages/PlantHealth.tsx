@@ -189,9 +189,10 @@ const PlantHealth = () => {
                           >
                             <div className="flex items-start space-x-3">
                               <img
-                                src={item.image_url}
+                                src={item.imageUrl}
                                 alt="Plant diagnosis"
                                 className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                                crossOrigin="anonymous"
                               />
                               <div className="flex-1 min-w-0">
                                 {item.diagnostic ? (
