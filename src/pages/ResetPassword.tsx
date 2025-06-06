@@ -154,7 +154,7 @@ const ResetPassword = () => {
               placeholder="New password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              minLength={8}
+              minLength={6}
               className="w-full px-4 py-3 border border-farmlink-lightgreen/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-farmlink-green"
               required
             />
@@ -163,7 +163,7 @@ const ResetPassword = () => {
               placeholder="Confirm new password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              minLength={8}
+              minLength={6}
               className="w-full px-4 py-3 border border-farmlink-lightgreen/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-farmlink-green"
               required
             />
@@ -174,7 +174,7 @@ const ResetPassword = () => {
                 !token ||
                 token.length !== 32 ||
                 !password ||
-                password.length < 8 ||
+                password.length < 6 ||
                 password !== confirm
               }
               className="w-full bg-farmlink-green hover:bg-farmlink-mediumgreen text-white"
