@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, MapPin } from "lucide-react";
 import { CultivationStatus, CreateLandDivisionDto, Plant } from '@/types/land';
+import { toast } from 'sonner';
+import { title } from 'process';
 
 interface LandDivisionFormProps {
   onSubmit: (data: CreateLandDivisionDto) => void;
@@ -47,6 +49,10 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
         },
         (error) => {
           console.error('Error getting location:', error);
+        // Add user feedback
+        toast.error("Location Error", {
+          description: "Failed to access your location. Please check permissions or enter coordinates manually.",
+        });
         }
       );
     }
