@@ -190,6 +190,64 @@ class ApiClient {
   async getAllDiagnosis(): Promise<ScanWithDiagnosis[]> {
     return this.request<ScanWithDiagnosis[]>("/plant-health/diagnosis");
   }
+// WORKERS
+async getWorkersByEmployer(): Promise<Worker[]> {
+  return this.request<Worker[]>("/worker/employer");
+}
+
+async getWorkersByStatus(status: "ACTIVE" | "INACTIVE"): Promise<Worker[]> {
+  return this.request<Worker[]>(`/worker?status=${status}`);
+}
+
+async createWorker(data: {
+  name: string;
+  contact: string;
+  imageUrl?: string;
+}): Promise<Worker> {
+  return this.request<Worker>("/worker", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+async updateWorker(id: number, data: {
+  name?: string;
+  contact?: string;
+  imageUrl?: string;
+  employmentStatus?: "ACTIVE" | "INACTIVE";
+}): Promise<Worker> {
+  return this.request<Worker>(`/worker/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+async deleteWorker(id: number): Promise<{ message: string }> {
+  return this.request<{ message: string }>(`/worker/${id}`, {
+    method: "DELETE",
+  });
+}
+
+async uploadWorkerImage(workerId: number, file: File): Promise<{ imageUrl: string }> {
+  const formData = new FormData();
+  formData.append("profileImage", file);
+
+  const url = `${API_BASE_URL}/worker/${workerId}/profile-image`;
+  const config: RequestInit = {
+    method: "POST",
+    headers: this.getAuthHeadersForFormData(),
+    credentials: "include",
+    body: formData,
+  };
+
+  const response = await fetch(url, config);
+  if (!response.ok) {
+    throw new Error(`Image upload failed. Status: ${response.status}`);
+  }
+  return response.json();
+}
+
+  
 }
 
 export const apiClient = new ApiClient();

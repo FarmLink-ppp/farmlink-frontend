@@ -132,7 +132,7 @@ const Welcome = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="px-6 py-20 lg:py-32">
+      <section className="px-6 py-20 lg:py-32 bg-[url('public/uploads/hero.jpg')] bg-cover bg-center bg-no-repeat">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-farmlink-lightgreen/20 text-farmlink-darkgreen text-sm font-medium mb-8">
@@ -147,11 +147,11 @@ const Welcome = () => {
               </span>
             </h1>
             
-            <p className="text-xl lg:text-2xl text-farmlink-darkgreen/70 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Harness the power of AI to increase yields, reduce costs, and build sustainable agricultural practices. 
-              Join the farming revolution that's transforming agriculture globally.
-            </p>
-            
+           <p className="text-2xl lg:text-2xl text-farmlink-darkgreen/70  mb-10 leading-relaxed max-w-3xl mx-auto fontbold">
+  Harness the power of AI to increase yields, reduce costs, and build sustainable agricultural practices. 
+  Join the farming revolution that's transforming agriculture globally.
+</p>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Link to="/register">
                 <Button size="lg" className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
