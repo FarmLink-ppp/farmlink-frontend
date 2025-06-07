@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api";
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [sharedPosts, setSharedPosts] = useState<any[]>([]);
 
   // Mock user data
   const userData = {
@@ -49,26 +50,31 @@ const Profile = () => {
     fetchUserPosts();
   }, []);
 
-  // Mock saved posts
-  const savedPosts = [
-    {
-      id: 3,
-      author: { name: "Sarah Johnson", avatar: "" },
-      date: "3 days ago",
-      content: "Great results with my crop rotation strategy this season! Alternating between corn, soybeans, and cover crops has really improved soil health.",
-      image: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      likes: 24,
-      comments: 6,
-    },
-    {
-      id: 4,
-      author: { name: "Mike Lewis", avatar: "" },
-      date: "1 week ago",
-      content: "Has anyone tried the new organic fertilizer from GreenGrow? I'm considering it for my tomato fields but wanted to hear some experiences first.",
-      likes: 12,
-      comments: 8,
-    },
-  ];
+  useEffect(() => {
+    const fetchSharedPosts = async () => {
+      try {
+        const backendPosts = await apiClient.getUserSharedPosts();
+        console.log("Fetched shared posts:", backendPosts);
+        
+        const mapped = backendPosts.map((p: any) => ({
+          id: p.id,
+          author: {
+            name: p.user?.username || "Unknown",
+            avatar: p.user?.profile_image || "",
+          },
+          date: p.created_at ? new Date(p.created_at).toLocaleString() : "",
+          content: p.content,
+          image: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : undefined,
+          likes: p.likes ? p.likes.length : 0,
+          comments: p.comments ? p.comments.length : 0,
+        }));
+        setSharedPosts(mapped);
+      } catch (error) {
+        console.error("Failed to fetch shared posts:", error);
+      }
+    };
+    fetchSharedPosts();
+  }, []);
 
   return (
     <MainLayout>
@@ -146,11 +152,11 @@ const Profile = () => {
               My Posts
             </TabsTrigger>
             <TabsTrigger 
-              value="saved"
+              value="shared"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-farmlink-green data-[state=active]:to-farmlink-mediumgreen data-[state=active]:text-white text-farmlink-darkgreen font-medium px-6 py-2 rounded-lg transition-all duration-300 flex items-center"
             >
               <Bookmark className="w-4 h-4 mr-2" />
-              Saved Posts
+              Shared Posts
             </TabsTrigger>
           </TabsList>
           
@@ -187,13 +193,12 @@ const Profile = () => {
             </div>
           </TabsContent>
           
-          <TabsContent value="saved" className="space-y-6">
+          <TabsContent value="shared" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-farmlink-darkgreen">Saved Posts ({savedPosts.length})</h2>
+              <h2 className="text-2xl font-bold text-farmlink-darkgreen">Shared Posts ({sharedPosts.length})</h2>
             </div>
-            
             <div className="space-y-6">
-              {savedPosts.map((post) => (
+              {sharedPosts.map((post) => (
                 <PostCard
                   key={post.id}
                   id={post.id}
@@ -206,12 +211,12 @@ const Profile = () => {
                 />
               ))}
               
-              {savedPosts.length === 0 && (
+              {sharedPosts.length === 0 && (
                 <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-12 text-center">
                     <Bookmark className="h-16 w-16 text-farmlink-lightgreen mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">No saved posts</h3>
-                    <p className="text-farmlink-darkgreen/60 mb-6">Save interesting posts to read them later!</p>
+                    <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">No shared posts</h3>
+                    <p className="text-farmlink-darkgreen/60 mb-6">Share interesting posts to see them here!</p>
                     <Button variant="outline" className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5">
                       Browse Community
                     </Button>

@@ -209,6 +209,12 @@ class ApiClient {
       method: "GET",
     });
   }
+
+  async getUserSharedPosts(): Promise<PostResponse[]> {
+    return this.request<PostResponse[]>(`/posts/me/shared-posts`, {
+      method: "GET",
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
