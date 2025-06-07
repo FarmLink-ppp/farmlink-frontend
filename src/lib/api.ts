@@ -1,5 +1,4 @@
 import {
-  User,
   LoginDto,
   CreateUserDto,
   EmailVerificationDto,
@@ -14,6 +13,15 @@ import {
   ProfileResponse,
   ScanWithDiagnosis,
   CreateScanResponse,
+  CreateFarmDto,
+  FarmResponse,
+  UpdateFarmDto,
+  LandDivisionResponse,
+  CreateLandDivisionDto,
+  CreatePlantDto,
+  PlantResponse,
+  UpdateLandDivisionDto,
+  UpdatePlantDto,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -189,6 +197,114 @@ class ApiClient {
 
   async getAllDiagnosis(): Promise<ScanWithDiagnosis[]> {
     return this.request<ScanWithDiagnosis[]>("/plant-health/diagnosis");
+  }
+
+  async createFarm(farmData: CreateFarmDto): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/create", {
+      method: "POST",
+      body: JSON.stringify(farmData),
+    });
+  }
+
+  async getFarm(): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms");
+  }
+
+  async updateFarm(farmData: UpdateFarmDto): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/update", {
+      method: "PATCH",
+      body: JSON.stringify(farmData),
+    });
+  }
+
+  async deleteFarm(): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/delete", {
+      method: "DELETE",
+    });
+  }
+
+  async createLandDivision(
+    landDivisionData: CreateLandDivisionDto
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>("/land-divisions/create", {
+      method: "POST",
+      body: JSON.stringify(landDivisionData),
+    });
+  }
+
+  async getLandDivisions(): Promise<LandDivisionResponse[]> {
+    return this.request<LandDivisionResponse[]>("/land-divisions/farm");
+  }
+
+  async getLandDivisionById(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}`
+    );
+  }
+
+  async updateLandDivision(
+    landDivisionId: number,
+    landDivisionData: UpdateLandDivisionDto
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/update`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(landDivisionData),
+      }
+    );
+  }
+
+  async deleteLandDivision(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/delete`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
+  async getLandDivisionPlant(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/plants`
+    );
+  }
+
+  async createPlant(plantData: CreatePlantDto): Promise<PlantResponse> {
+    return this.request<PlantResponse>("/plants/create", {
+      method: "POST",
+      body: JSON.stringify(plantData),
+    });
+  }
+
+  async getAllPlants(): Promise<PlantResponse[]> {
+    return this.request<PlantResponse[]>("/plants");
+  }
+
+  async getPlantById(plantId: number): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}`);
+  }
+
+  async updatePlant(
+    plantId: number,
+    plantData: UpdatePlantDto
+  ): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}/update`, {
+      method: "PATCH",
+      body: JSON.stringify(plantData),
+    });
+  }
+
+  async deletePlant(plantId: number): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}/delete`, {
+      method: "DELETE",
+    });
   }
 // WORKERS
 async getWorkersByEmployer(): Promise<Worker[]> {

@@ -1,28 +1,25 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
-
-export interface CreatePlantDto {
-  name: string;
-  description?: string;
-  image_url?: string;
-}
+import { CreatePlantDto } from "@/types";
 
 interface PlantFormProps {
   onSubmit: (data: CreatePlantDto) => void;
   isLoading?: boolean;
 }
 
-const PlantForm: React.FC<PlantFormProps> = ({ onSubmit, isLoading = false }) => {
+const PlantForm: React.FC<PlantFormProps> = ({
+  onSubmit,
+  isLoading = false,
+}) => {
   const [formData, setFormData] = useState<CreatePlantDto>({
-    name: '',
-    description: '',
-    image_url: ''
+    name: "",
+    description: "",
+    imageUrl: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,12 +27,12 @@ const PlantForm: React.FC<PlantFormProps> = ({ onSubmit, isLoading = false }) =>
     onSubmit({
       name: formData.name,
       description: formData.description || undefined,
-      image_url: formData.image_url || undefined
+      imageUrl: formData.imageUrl || undefined,
     });
     setFormData({
-      name: '',
-      description: '',
-      image_url: ''
+      name: "",
+      description: "",
+      imageUrl: "",
     });
   };
 
@@ -50,11 +47,15 @@ const PlantForm: React.FC<PlantFormProps> = ({ onSubmit, isLoading = false }) =>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-farmlink-darkgreen">Plant Name</Label>
+            <Label htmlFor="name" className="text-farmlink-darkgreen">
+              Plant Name
+            </Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., Tomato, Corn, Wheat"
               required
               className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
@@ -62,11 +63,15 @@ const PlantForm: React.FC<PlantFormProps> = ({ onSubmit, isLoading = false }) =>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-farmlink-darkgreen">Description (Optional)</Label>
+            <Label htmlFor="description" className="text-farmlink-darkgreen">
+              Description (Optional)
+            </Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Brief description of the plant..."
               className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
               rows={3}
@@ -74,22 +79,26 @@ const PlantForm: React.FC<PlantFormProps> = ({ onSubmit, isLoading = false }) =>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image_url" className="text-farmlink-darkgreen">Image URL (Optional)</Label>
+            <Label htmlFor="imageUrl" className="text-farmlink-darkgreen">
+              Image URL (Optional)
+            </Label>
             <Input
-              id="image_url"
-              value={formData.image_url}
-              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              id="imageUrl"
+              value={formData.imageUrl}
+              onChange={(e) =>
+                setFormData({ ...formData, imageUrl: e.target.value })
+              }
               placeholder="https://example.com/plant-image.jpg"
               className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
             />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isLoading}
             className="w-full bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
           >
-            {isLoading ? 'Adding...' : 'Add Plant'}
+            {isLoading ? "Adding..." : "Add Plant"}
           </Button>
         </form>
       </CardContent>
