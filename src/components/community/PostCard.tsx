@@ -138,6 +138,26 @@ const PostCard: React.FC<PostCardProps> = ({
     }
   };
 
+  const handleShare = async () => {
+    try {
+      await apiClient.sharePost(id);
+      toast({
+        title: "Post shared!",
+        description: "This post has been shared successfully.",
+        variant: "default",
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error("Failed to share post:", error);
+      toast({
+        title: "Failed to share post",
+        description: error?.message || "An error occurred while sharing the post.",
+        variant: "destructive",
+        duration: 4000,
+      });
+    }
+  };
+
   return (
     <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
       <CardContent className="p-6">
@@ -208,6 +228,7 @@ const PostCard: React.FC<PostCardProps> = ({
           <Button 
             variant="ghost" 
             size="sm"
+            onClick={handleShare}
             className="text-farmlink-darkgreen hover:bg-farmlink-green/5 transition-all duration-200"
           >
             <Share className="mr-2 h-4 w-4" />

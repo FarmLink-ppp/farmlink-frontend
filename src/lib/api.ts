@@ -197,6 +197,12 @@ class ApiClient {
       body: JSON.stringify({ content }),
     });
   }
+
+  async sharePost(postId: number): Promise<MessageResponse> {
+    return this.request<MessageResponse>(`/posts/share/${postId}`, {
+      method: "POST",
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
