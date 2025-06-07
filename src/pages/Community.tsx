@@ -28,6 +28,7 @@ const Community = () => {
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { user } = useContext(AuthContext);
+  const [visibleCount, setVisibleCount] = useState(5);
   console.log("user in community page", user);
   
   useEffect(() => {
@@ -138,6 +139,9 @@ const Community = () => {
     return true;
   });
 
+  // Pagination: only show the first `visibleCount` posts
+  const paginatedPosts = filteredPosts.slice(0, visibleCount);
+
   return (
     <MainLayout>
       <div className="space-y-8 animate-fade-in">
@@ -242,8 +246,8 @@ const Community = () => {
             </div>
 
             <div className="space-y-4">
-              {filteredPosts.length > 0 ? (
-                filteredPosts.map((post) => (
+              {paginatedPosts.length > 0 ? (
+                paginatedPosts.map((post) => (
                   <PostCard
                     key={post.id}
                     id={post.id}
@@ -272,9 +276,15 @@ const Community = () => {
               )}
             </div>
 
-            {filteredPosts.length > 0 && (
+            {filteredPosts.length > visibleCount && (
               <div className="text-center">
-                <Button variant="outline" className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5">Load More Posts</Button>
+                <Button 
+                  variant="outline" 
+                  className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
+                  onClick={() => setVisibleCount(visibleCount + 5)}
+                >
+                  Load More Posts
+                </Button>
               </div>
             )}
           </div>
