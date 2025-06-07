@@ -1,32 +1,28 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import LandDivisionForm from "@/components/land/LandDivisionForm";
 import LandDivisionList from "@/components/land/LandDivisionList";
-import PlantForm, { CreatePlantDto } from "@/components/land/PlantForm";
+import PlantForm from "@/components/land/PlantForm";
 import PlantList from "@/components/land/PlantList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CreateLandDivisionDto,
+  CreatePlantDto,
   CultivationStatus,
   UpdateFarmDto,
+  UpdateLandDivisionDto,
+  UpdatePlantDto,
 } from "@/types";
 import { CreateFarmDto } from "@/types";
 import { useFarm } from "@/hooks/useFarm";
 import { useLandDivision } from "@/hooks/useLandDivisions";
 import { usePlant } from "@/hooks/usePlants";
-import {
-  Save,
-  Map,
-  Sparkles,
-  BarChart3,
-  Leaf,
-  MapPin,
-  Calendar,
-} from "lucide-react";
+import { Map, Sparkles, BarChart3, Leaf, MapPin, Calendar } from "lucide-react";
 import FarmForm from "@/components/land/FarmForm";
 import FarmSettings from "@/components/land/FarmSettings";
 import DeleteFarm from "@/components/land/DeleteFarm";
+import { toast } from "@/hooks/use-toast";
 
 const LandManagement = () => {
   const {
@@ -43,6 +39,7 @@ const LandManagement = () => {
     isLoading: landDivisionLoading,
     error: landDivisionError,
     createLandDivision,
+    updateLandDivision,
     deleteLandDivision,
     refetchLandDivisions,
     clearError: clearLandDivisionError,
@@ -55,14 +52,12 @@ const LandManagement = () => {
     createPlant,
     deletePlant,
     getAllPlants,
+    updatePlant,
     clearError: clearPlantError,
   } = usePlant();
 
-  const [savedSuccessfully, setSavedSuccessfully] = useState(false);
-
   const handleCreateFarm = async (farmData: CreateFarmDto) => {
     await createFarm(farmData);
-    // Refetch land divisions after farm creation
     await refetchLandDivisions();
   };
 
@@ -72,23 +67,35 @@ const LandManagement = () => {
 
   const handleDeleteFarm = async () => {
     await deleteFarm();
-    // Clear any existing land divisions and plants from state
     await refetchLandDivisions();
     await getAllPlants();
   };
 
   const handleCreatePlant = async (data: CreatePlantDto) => {
     await createPlant(data);
-    // Refetch plants to update the list
     await getAllPlants();
   };
 
   const handleCreateDivision = async (data: CreateLandDivisionDto) => {
     await createLandDivision(data);
+    await refetchLandDivisions();
+  };
+
+  const handleEditLandDivision = async (
+    id: number,
+    data: UpdateLandDivisionDto
+  ) => {
+    await updateLandDivision(id, data);
+    await refetchLandDivisions();
   };
 
   const handleDeleteDivision = async (id: number) => {
     await deleteLandDivision(id);
+  };
+
+  const handleEditPlant = async (id: number, data: UpdatePlantDto) => {
+    await updatePlant(id, data);
+    await getAllPlants();
   };
 
   const handleDeletePlant = async (id: number) => {
@@ -108,8 +115,19 @@ const LandManagement = () => {
     return acc;
   }, {} as Record<CultivationStatus, number>);
 
-  const isLoading = farmLoading || landDivisionLoading || plantLoading;
   const error = farmError || landDivisionError || plantError;
+
+  useEffect(() => {
+    if (error) {
+      if (error === "Farm not found") return;
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive",
+      });
+      clearError();
+    }
+  }, [error, clearError]);
 
   if (farmLoading) {
     return (
@@ -301,7 +319,7 @@ const LandManagement = () => {
                 <LandDivisionForm
                   onSubmit={handleCreateDivision}
                   plants={plants}
-                  isLoading={isLoading}
+                  isLoading={landDivisionLoading}
                 />
               </div>
 
@@ -315,6 +333,8 @@ const LandManagement = () => {
                   <CardContent className="p-6">
                     <LandDivisionList
                       divisions={landDivisions}
+                      plants={plants}
+                      onEdit={handleEditLandDivision}
                       onDelete={handleDeleteDivision}
                     />
                   </CardContent>
@@ -326,7 +346,10 @@ const LandManagement = () => {
           <TabsContent value="plants" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div>
-                <PlantForm onSubmit={handleCreatePlant} isLoading={isLoading} />
+                <PlantForm
+                  onSubmit={handleCreatePlant}
+                  isLoading={plantLoading}
+                />
               </div>
 
               <div className="lg:col-span-2">
@@ -338,7 +361,11 @@ const LandManagement = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <PlantList plants={plants} onDelete={handleDeletePlant} />
+                    <PlantList
+                      plants={plants}
+                      onDelete={handleDeletePlant}
+                      onEdit={handleEditPlant}
+                    />
                   </CardContent>
                 </Card>
               </div>

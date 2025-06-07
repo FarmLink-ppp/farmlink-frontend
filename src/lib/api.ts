@@ -20,6 +20,8 @@ import {
   CreateLandDivisionDto,
   CreatePlantDto,
   PlantResponse,
+  UpdateLandDivisionDto,
+  UpdatePlantDto,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -244,7 +246,7 @@ class ApiClient {
 
   async updateLandDivision(
     landDivisionId: number,
-    landDivisionData: CreateLandDivisionDto
+    landDivisionData: UpdateLandDivisionDto
   ): Promise<LandDivisionResponse> {
     return this.request<LandDivisionResponse>(
       `/land-divisions/${landDivisionId}/update`,
@@ -291,7 +293,7 @@ class ApiClient {
 
   async updatePlant(
     plantId: number,
-    plantData: CreatePlantDto
+    plantData: UpdatePlantDto
   ): Promise<PlantResponse> {
     return this.request<PlantResponse>(`/plants/${plantId}/update`, {
       method: "PATCH",

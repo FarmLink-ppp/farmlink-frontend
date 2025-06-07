@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { CreatePlantDto, PlantResponse } from "@/types";
+import { CreatePlantDto, PlantResponse, UpdatePlantDto } from "@/types";
 import { useEffect, useState } from "react";
 
 interface UsePlantReturn {
@@ -12,7 +12,7 @@ interface UsePlantReturn {
   createPlant: (plantData: CreatePlantDto) => Promise<void>;
   getAllPlants: () => Promise<void>;
   getPlantById: (plantId: number) => Promise<void>;
-  updatePlant: (plantId: number, plantData: CreatePlantDto) => Promise<void>;
+  updatePlant: (plantId: number, plantData: UpdatePlantDto) => Promise<void>;
   deletePlant: (plantId: number) => Promise<void>;
 
   clearCurrentPlant: () => void;
@@ -70,7 +70,7 @@ export const usePlant = (): UsePlantReturn => {
     }
   };
 
-  const updatePlant = async (plantId: number, plantData: CreatePlantDto) => {
+  const updatePlant = async (plantId: number, plantData: UpdatePlantDto) => {
     setIsLoading(true);
     setError(null);
     try {

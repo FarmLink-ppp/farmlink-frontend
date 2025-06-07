@@ -16,7 +16,7 @@ import { MapPin, Sprout, AlertCircle } from "lucide-react";
 interface FarmFormProps {
   onSubmit: (farmData: CreateFarmDto) => Promise<void>;
   isLoading: boolean;
-  error?: string | null;
+  error: string | null;
 }
 
 const FarmForm = ({ onSubmit, isLoading, error }: FarmFormProps) => {
@@ -66,7 +66,7 @@ const FarmForm = ({ onSubmit, isLoading, error }: FarmFormProps) => {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {error && (
+          {error && error !== "Farm not found" && (
             <div className="flex items-center space-x-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <p className="text-sm">{error}</p>

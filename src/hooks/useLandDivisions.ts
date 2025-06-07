@@ -1,6 +1,10 @@
 import { apiClient } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
-import { CreateLandDivisionDto, LandDivisionResponse } from "@/types";
+import {
+  CreateLandDivisionDto,
+  LandDivisionResponse,
+  UpdateLandDivisionDto,
+} from "@/types";
 import { useEffect, useState } from "react";
 
 interface UseLandDivisionReturn {
@@ -15,7 +19,7 @@ interface UseLandDivisionReturn {
   getLandDivisionById: (landDivisionId: number) => Promise<void>;
   updateLandDivision: (
     landDivisionId: number,
-    landDivisionData: CreateLandDivisionDto
+    landDivisionData: UpdateLandDivisionDto
   ) => Promise<void>;
   deleteLandDivision: (landDivisionId: number) => Promise<void>;
   getLandDivisionPlant: (landDivisionId: number) => Promise<void>;
@@ -84,7 +88,7 @@ export const useLandDivision = (): UseLandDivisionReturn => {
 
   const updateLandDivision = async (
     landDivisionId: number,
-    landDivisionData: CreateLandDivisionDto
+    landDivisionData: UpdateLandDivisionDto
   ) => {
     setIsLoading(true);
     setError(null);

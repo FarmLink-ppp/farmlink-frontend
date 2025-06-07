@@ -11,12 +11,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, MapPin } from "lucide-react";
-import { CultivationStatus, CreateLandDivisionDto, Plant } from "@/types";
+import {
+  CultivationStatus,
+  CreateLandDivisionDto,
+  PlantResponse,
+} from "@/types";
 import { toast } from "sonner";
 
 interface LandDivisionFormProps {
   onSubmit: (data: CreateLandDivisionDto) => void;
-  plants: Plant[];
+  plants: PlantResponse[];
   isLoading?: boolean;
 }
 
