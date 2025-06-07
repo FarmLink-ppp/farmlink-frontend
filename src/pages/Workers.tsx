@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, Plus } from "lucide-react";
+import { Users, Plus, Mail, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
 
@@ -155,9 +155,15 @@ const Workers = () => {
       <div className="space-y-8 animate-fade-in">
         <div className="bg-gradient-to-r from-farmlink-green/10 to-farmlink-mediumgreen/10 rounded-2xl p-8 border">
           <div className="flex justify-between">
-            <h1 className="text-4xl font-bold text-farmlink-darkgreen flex items-center">
-              <Users className="mr-3 h-8 w-8 text-farmlink-green" /> Workers Management
-            </h1>
+            <div>
+              <h1 className="text-4xl font-bold text-farmlink-darkgreen flex items-center mb-2">
+                <Users className="mr-3 h-8 w-8 text-farmlink-green" />
+                Workers Management
+              </h1>
+              <p className="text-farmlink-darkgreen/70 text-lg">
+                Manage your farm workers and track their information
+              </p>
+            </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen text-white">
@@ -187,10 +193,44 @@ const Workers = () => {
           </div>
         </div>
 
+
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card><CardHeader><CardTitle>Total Workers</CardTitle></CardHeader><CardContent>{workers.length}</CardContent></Card>
-          <Card><CardHeader><CardTitle>Active</CardTitle></CardHeader><CardContent>{activeWorkers.length}</CardContent></Card>
-          <Card><CardHeader><CardTitle>Inactive</CardTitle></CardHeader><CardContent>{inactiveWorkers.length}</CardContent></Card>
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-farmlink-darkgreen flex items-center text-sm">
+                <Users className="w-4 h-4 mr-2 text-farmlink-green" />
+                Total Workers
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-farmlink-darkgreen">{workers.length}</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-farmlink-darkgreen flex items-center text-sm">
+                <UserPlus className="w-4 h-4 mr-2 text-green-600" />
+                Active
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-green-600">{activeWorkers.length}</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-farmlink-darkgreen flex items-center text-sm">
+                <Mail className="w-4 h-4 mr-2 text-red-600" />
+                Inactive
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-red-600">{inactiveWorkers.length}</p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
