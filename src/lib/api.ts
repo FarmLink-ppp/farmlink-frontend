@@ -15,6 +15,18 @@ import {
 } from "@/types";
 import { CreatePostDto, PostResponse } from "@/types/post";
 
+export interface PostComment {
+  id: number;
+  content: string;
+  created_at: string;
+  user: {
+    id: number;
+    username: string;
+    account_type: string;
+    profile_image?: string;
+  };
+}
+
 const API_BASE_URL = "http://localhost:3000/api";
 
 class ApiClient {
@@ -181,6 +193,14 @@ class ApiClient {
     return this.request<MessageResponse>(`/posts/like/${postId}`, {
       method: "DELETE",
     });
+  }
+
+  async getFeed(): Promise<PostResponse[]> {
+    return this.request<PostResponse[]>(`/posts/feed`);
+  }
+
+  async getPostComments(postId: number): Promise<PostComment[]> {
+    return this.request<PostComment[]>(`/posts/comments/${postId}`);
   }
 }
 

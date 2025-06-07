@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import PostCard from "@/components/community/PostCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Users, MessageSquare, Filter, Send, Image as ImageIcon, Sparkles } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { apiClient } from "@/lib/api";
-import { useContext } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
+
 interface Post {
   id: number;
   author: { name: string; avatar: string };
@@ -30,6 +30,31 @@ const Community = () => {
   const { user } = useContext(AuthContext);
   console.log("user in community page", user);
   
+  useEffect(() => {
+    const fetchFeed = async () => {
+      try {
+        const backendPosts = await apiClient.getFeed();
+        // Map backend posts to local Post type
+        const mapped = backendPosts.map((p: any) => ({
+          id: p.id,
+          author: {
+            name: p.user?.username || "Unknown",
+            avatar: p.user?.profile_image || "",
+          },
+          date: p.created_at ? new Date(p.created_at).toLocaleString() : "",
+          content: p.content,
+          image: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : undefined,
+          likes: p.likes ? p.likes.length : 0,
+          comments: p.comments ? p.comments.length : 0,
+        }));
+        setPosts(mapped);
+      } catch (error) {
+        console.error("Failed to fetch feed:", error);
+      }
+    };
+    fetchFeed();
+  }, []);
+
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.trim() && !imagePreview) return;

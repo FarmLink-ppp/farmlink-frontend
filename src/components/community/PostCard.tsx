@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,18 @@ interface Comment {
   author: Author;
   content: string;
   timestamp: string;
+}
+
+interface BackendComment {
+  id: number;
+  content: string;
+  created_at: string;
+  user: {
+    id: number;
+    username: string;
+    account_type: string;
+    profile_image?: string;
+  };
 }
 
 export interface PostCardProps {
@@ -42,6 +54,33 @@ const PostCard: React.FC<PostCardProps> = ({
   const [likes, setLikes] = useState(initialLikes);
   const [showComments, setShowComments] = useState(false);
   const [commentsList, setCommentsList] = useState<Comment[]>([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const backendResponse = await apiClient.getPostComments(id);
+        let backendComments;
+        if (Array.isArray(backendResponse)) {
+          backendComments = backendResponse;
+        } else if (backendResponse && Array.isArray((backendResponse as any).comments)) {
+          backendComments = (backendResponse as any).comments;
+        } else {
+          backendComments = [];
+        }
+        const mapped = backendComments.map((c: any) => ({
+          id: c.id,
+          author: { name: c.user?.username || "Unknown", avatar: c.user?.profile_image || "" },
+          content: c.content,
+          timestamp: c.created_at ? new Date(c.created_at).toLocaleString() : "",
+        }));
+        setCommentsList(mapped);
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+      }
+    };
+    fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleLike = async () => {
     if (liked) {
@@ -112,7 +151,7 @@ const PostCard: React.FC<PostCardProps> = ({
         </div>
 
         <div className="flex justify-between items-center text-sm text-farmlink-darkgreen/60 mb-4">
-          <div>{likes} likes • {commentsList.length + initialComments} comments</div>
+          <div>{likes} likes • {commentsList.length} comments</div>
         </div>
 
         <div className="border-t border-farmlink-lightgreen/20 pt-4 flex justify-between">
@@ -191,7 +230,7 @@ const PostCard: React.FC<PostCardProps> = ({
             
             {initialComments > 0 && commentsList.length === 0 && (
               <div className="text-center text-sm text-farmlink-darkgreen/60 py-4">
-                Be the first to comment on this post!
+                Be the f"irst to comment on this post!
               </div>
             )}
           </div>
