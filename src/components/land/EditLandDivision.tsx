@@ -152,7 +152,7 @@ const EditLandDivision = ({
             <Input
               id="name"
               value={editFormData.name || ""}
-              onChange={(e) => handleEditFormChange("name")}
+              onChange={handleEditFormChange("name")}
               className="col-span-3"
             />
           </div>
@@ -168,7 +168,7 @@ const EditLandDivision = ({
               type="number"
               step="0.01"
               value={editFormData.area || ""}
-              onChange={(e) => handleEditFormChange("area")}
+              onChange={handleEditFormChange("area")}
               className="col-span-3"
             />
           </div>
@@ -231,7 +231,7 @@ const EditLandDivision = ({
             <Input
               id="geolocation"
               value={editFormData.geolocation || ""}
-              onChange={(e) => handleEditFormChange("geolocation")}
+              onChange={handleEditFormChange("geolocation")}
               className="col-span-3"
               placeholder="e.g., 36.8065, 10.1815"
             />

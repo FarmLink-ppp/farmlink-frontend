@@ -51,7 +51,6 @@ const DeletePlant = ({ plant, onDelete }: DeletePlantProps) => {
           </AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the plant
-            plant
             <strong className="text-farmlink-darkgreen">
               {" "}
               "{plant?.name}"

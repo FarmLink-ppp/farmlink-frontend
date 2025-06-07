@@ -127,7 +127,7 @@ const EditPlant = ({ plant, onEdit }: EditPlantProps) => {
               htmlFor="description"
               className="text-right text-farmlink-darkgreen"
             >
-              Area
+              Description
             </Label>
             <Input
               id="description"
@@ -142,7 +142,7 @@ const EditPlant = ({ plant, onEdit }: EditPlantProps) => {
               htmlFor="imageUrl"
               className="text-right text-farmlink-darkgreen"
             >
-              Location
+              Image URL
             </Label>
             <Input
               id="imageUrl"
