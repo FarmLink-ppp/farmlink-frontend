@@ -106,7 +106,7 @@ export const useFollow = (): UseFollowReturn => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiClient.acceptFollowRequest(requestId);
+      await apiClient.acceptFollowRequest(requestId);
       setFollowRequests((prev) =>
         prev.filter((request) => request.id !== requestId)
       );
@@ -149,11 +149,21 @@ export const useFollow = (): UseFollowReturn => {
     setIsLoading(true);
     setError(null);
     try {
-      await Promise.all([
-        fetchFollowers(),
-        fetchFollowing(),
-        fetchFollowRequests(),
+      const [followersPromise, followingPromise, requestsPromise] = [
+        apiClient.getFollowers(),
+        apiClient.getFollowing(),
+        apiClient.getFollowRequests(),
+      ];
+
+      const [followers, following, requests] = await Promise.all([
+        followersPromise,
+        followingPromise,
+        requestsPromise,
       ]);
+
+      setFollowers(followers);
+      setFollowing(following);
+      setFollowRequests(requests);
     } catch (error) {
       handleError(error);
     } finally {
