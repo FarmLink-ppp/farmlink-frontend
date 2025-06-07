@@ -22,6 +22,8 @@ import {
   PlantResponse,
   UpdateLandDivisionDto,
   UpdatePlantDto,
+  FollowResponse,
+  Follow,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -306,64 +308,110 @@ class ApiClient {
       method: "DELETE",
     });
   }
-// WORKERS
-async getWorkersByEmployer(): Promise<Worker[]> {
-  return this.request<Worker[]>("/worker/employer");
-}
-
-async getWorkersByStatus(status: "ACTIVE" | "INACTIVE"): Promise<Worker[]> {
-  return this.request<Worker[]>(`/worker?status=${status}`);
-}
-
-async createWorker(data: {
-  name: string;
-  contact: string;
-  imageUrl?: string;
-}): Promise<Worker> {
-  return this.request<Worker>("/worker", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-async updateWorker(id: number, data: {
-  name?: string;
-  contact?: string;
-  imageUrl?: string;
-  employmentStatus?: "ACTIVE" | "INACTIVE";
-}): Promise<Worker> {
-  return this.request<Worker>(`/worker/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
-
-async deleteWorker(id: number): Promise<{ message: string }> {
-  return this.request<{ message: string }>(`/worker/${id}`, {
-    method: "DELETE",
-  });
-}
-
-async uploadWorkerImage(workerId: number, file: File): Promise<{ imageUrl: string }> {
-  const formData = new FormData();
-  formData.append("profileImage", file);
-
-  const url = `${API_BASE_URL}/worker/${workerId}/profile-image`;
-  const config: RequestInit = {
-    method: "POST",
-    headers: this.getAuthHeadersForFormData(),
-    credentials: "include",
-    body: formData,
-  };
-
-  const response = await fetch(url, config);
-  if (!response.ok) {
-    throw new Error(`Image upload failed. Status: ${response.status}`);
+  // WORKERS
+  async getWorkersByEmployer(): Promise<Worker[]> {
+    return this.request<Worker[]>("/worker/employer");
   }
-  return response.json();
-}
 
-  
+  async getWorkersByStatus(status: "ACTIVE" | "INACTIVE"): Promise<Worker[]> {
+    return this.request<Worker[]>(`/worker?status=${status}`);
+  }
+
+  async createWorker(data: {
+    name: string;
+    contact: string;
+    imageUrl?: string;
+  }): Promise<Worker> {
+    return this.request<Worker>("/worker", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWorker(
+    id: number,
+    data: {
+      name?: string;
+      contact?: string;
+      imageUrl?: string;
+      employmentStatus?: "ACTIVE" | "INACTIVE";
+    }
+  ): Promise<Worker> {
+    return this.request<Worker>(`/worker/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWorker(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/worker/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async uploadWorkerImage(
+    workerId: number,
+    file: File
+  ): Promise<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    const url = `${API_BASE_URL}/worker/${workerId}/profile-image`;
+    const config: RequestInit = {
+      method: "POST",
+      headers: this.getAuthHeadersForFormData(),
+      credentials: "include",
+      body: formData,
+    };
+
+    const response = await fetch(url, config);
+    if (!response.ok) {
+      throw new Error(`Image upload failed. Status: ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async followUser(userId: number): Promise<FollowResponse> {
+    return this.request<FollowResponse>(`/follow/${userId}`, {
+      method: "POST",
+    });
+  }
+
+  async unfollowUser(userId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/follow/${userId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFollowers(): Promise<Follow[]> {
+    return this.request<Follow[]>(`/follow/followers`);
+  }
+
+  async getFollowing(): Promise<Follow[]> {
+    return this.request<Follow[]>(`/follow/following`);
+  }
+
+  async getFollowRequests(): Promise<Follow[]> {
+    return this.request<Follow[]>(`/follow/requests`);
+  }
+
+  async acceptFollowRequest(requestId: number): Promise<FollowResponse> {
+    return this.request<FollowResponse>(
+      `/follow/requests/${requestId}/accept`,
+      {
+        method: "POST",
+      }
+    );
+  }
+
+  async rejectFollowRequest(requestId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/follow/requests/${requestId}/reject`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
 }
 
 export const apiClient = new ApiClient();
