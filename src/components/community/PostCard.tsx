@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Heart, Share, Bookmark } from "lucide-react";
 import CommentForm from "./CommentForm";
 import { apiClient } from "@/lib/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Author {
   name: string;
@@ -18,18 +19,6 @@ interface Comment {
   timestamp: string;
 }
 
-interface BackendComment {
-  id: number;
-  content: string;
-  created_at: string;
-  user: {
-    id: number;
-    username: string;
-    account_type: string;
-    profile_image?: string;
-  };
-}
-
 export interface PostCardProps {
   author: Author;
   date: string;
@@ -38,7 +27,7 @@ export interface PostCardProps {
   likes: number;
   comments: number;
   id: number; // Ensure id is required and passed from parent
-}
+} 
 
 const PostCard: React.FC<PostCardProps> = ({
   author,
@@ -54,6 +43,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [likes, setLikes] = useState(initialLikes);
   const [showComments, setShowComments] = useState(false);
   const [commentsList, setCommentsList] = useState<Comment[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -116,14 +106,36 @@ const PostCard: React.FC<PostCardProps> = ({
     // In a real app, this would save to a backend
   };
 
-  const handleSubmitComment = (content: string) => {
-    const newComment = {
-      id: Date.now(),
-      author: { name: "John Doe" },
-      content,
-      timestamp: "Just now",
-    };
-    setCommentsList([newComment, ...commentsList]);
+  const handleSubmitComment = async (content: string) => {
+    try {
+      await apiClient.createComment(id, content);
+      // Re-fetch comments after successful post
+      const backendResponse = await apiClient.getPostComments(id);
+      let backendComments;
+      if (Array.isArray(backendResponse)) {
+        backendComments = backendResponse;
+      } else if (backendResponse && Array.isArray((backendResponse as any).comments)) {
+        backendComments = (backendResponse as any).comments;
+      } else {
+        backendComments = [];
+      }
+      const mapped = backendComments.map((c: any) => ({
+        id: c.id,
+        author: { name: c.user?.username || "Unknown", avatar: c.user?.profile_image || "" },
+        content: c.content,
+        timestamp: c.created_at ? new Date(c.created_at).toLocaleString() : "",
+      }));
+      setCommentsList(mapped);
+    } catch (error: any) {
+      console.error("F55ailed to post comment:", error); // Log the error in the console
+      console.log("[POST COMMENT ERROR] -- See above for details");
+      toast({
+        title: "Failed to post comment",
+        description: error?.message || "An error occurred while posting your comment.",
+        variant: "destructive",
+        duration: 4000,
+      });
+    }
   };
 
   return (

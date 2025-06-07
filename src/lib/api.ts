@@ -13,19 +13,7 @@ import {
   ApiError,
   ProfileResponse,
 } from "@/types";
-import { CreatePostDto, PostResponse } from "@/types/post";
-
-export interface PostComment {
-  id: number;
-  content: string;
-  created_at: string;
-  user: {
-    id: number;
-    username: string;
-    account_type: string;
-    profile_image?: string;
-  };
-}
+import { CreatePostDto, PostResponse, PostComment } from "@/types/post";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -201,6 +189,13 @@ class ApiClient {
 
   async getPostComments(postId: number): Promise<PostComment[]> {
     return this.request<PostComment[]>(`/posts/comments/${postId}`);
+  }
+
+  async createComment(postId: number, content: string): Promise<PostComment> {
+    return this.request<PostComment>(`/posts/comment/${postId}`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
   }
 }
 

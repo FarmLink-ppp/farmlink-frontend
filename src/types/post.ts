@@ -12,3 +12,15 @@ export interface PostResponse {
   likes: number;
   comments: number;
 }
+
+export interface PostComment {
+  id: number;
+  content: string;
+  created_at: string;
+  user: {
+    id: number;
+    username: string;
+    account_type: string;
+    profile_image?: string;
+  };
+}
