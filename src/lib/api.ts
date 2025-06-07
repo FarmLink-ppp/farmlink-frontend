@@ -203,6 +203,12 @@ class ApiClient {
       method: "POST",
     });
   }
+
+  async getUserPosts(): Promise<PostResponse[]> {
+    return this.request<PostResponse[]>(`/posts/me`, {
+      method: "GET",
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

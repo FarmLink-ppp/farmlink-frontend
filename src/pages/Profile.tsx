@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import { useState , useEffect} from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import PostCard from "@/components/community/PostCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Calendar, MapPin, Leaf, MessageSquare, Bookmark, Sparkles } from "lucide-react";
-
+import { Calendar, MapPin, Leaf, MessageSquare, Bookmark, Sparkles } from "lucide-react";
+import { apiClient } from "@/lib/api";
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
+  const [userPosts, setUserPosts] = useState<any[]>([]);
 
   // Mock user data
   const userData = {
@@ -24,26 +25,29 @@ const Profile = () => {
     }
   };
 
-  // Mock user's posts
-  const userPosts = [
-    {
-      id: 1,
-      author: { name: "John Doe", avatar: "" },
-      date: "2 hours ago",
-      content: "Just finished installing a new drip irrigation system in the greenhouse. The water efficiency is already showing great improvements!",
-      likes: 15,
-      comments: 4,
-    },
-    {
-      id: 2,
-      author: { name: "John Doe", avatar: "" },
-      date: "1 day ago",
-      content: "Harvested the first batch of tomatoes this season. The organic fertilizer mix really made a difference in both size and taste!",
-      image: "https://images.unsplash.com/photo-1592921870789-04563d55041c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      likes: 28,
-      comments: 8,
-    },
-  ];
+  useEffect(() => {
+    const fetchUserPosts = async () => {
+      try {
+        const backendPosts = await apiClient.getUserPosts();
+        const mapped = backendPosts.map((p: any) => ({
+          id: p.id,
+          author: {
+            name: p.user?.username || "Unknown",
+            avatar: p.user?.profile_image || "",
+          },
+          date: p.created_at ? new Date(p.created_at).toLocaleString() : "",
+          content: p.content,
+          image: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : undefined,
+          likes: p.likes ? p.likes.length : 0,
+          comments: p.comments ? p.comments.length : 0,
+        }));
+        setUserPosts(mapped);
+      } catch (error) {
+        console.error("Failed to fetch user posts:", error);
+      }
+    };
+    fetchUserPosts();
+  }, []);
 
   // Mock saved posts
   const savedPosts = [
@@ -154,7 +158,6 @@ const Profile = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-farmlink-darkgreen">My Posts ({userPosts.length})</h2>
             </div>
-            
             <div className="space-y-6">
               {userPosts.map((post) => (
                 <PostCard
