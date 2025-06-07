@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CreateLandDivisionDto,
-  LandDivision,
-  Plant,
   CultivationStatus,
   UpdateFarmDto,
 } from "@/types";
 import { CreateFarmDto } from "@/types";
 import { useFarm } from "@/hooks/useFarm";
+import { useLandDivision } from "@/hooks/useLandDivisions";
+import { usePlant } from "@/hooks/usePlants";
 import {
   Save,
   Map,
@@ -37,13 +37,33 @@ const LandManagement = () => {
     updateFarm,
     deleteFarm,
   } = useFarm();
-  const [divisions, setDivisions] = useState<LandDivision[]>([]);
-  const [plants, setPlants] = useState<Plant[]>([]);
+
+  const {
+    landDivisions,
+    isLoading: landDivisionLoading,
+    error: landDivisionError,
+    createLandDivision,
+    deleteLandDivision,
+    refetchLandDivisions,
+    clearError: clearLandDivisionError,
+  } = useLandDivision();
+
+  const {
+    plants,
+    isLoading: plantLoading,
+    error: plantError,
+    createPlant,
+    deletePlant,
+    getAllPlants,
+    clearError: clearPlantError,
+  } = usePlant();
+
   const [savedSuccessfully, setSavedSuccessfully] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateFarm = async (farmData: CreateFarmDto) => {
     await createFarm(farmData);
+    // Refetch land divisions after farm creation
+    await refetchLandDivisions();
   };
 
   const handleUpdateFarm = async (farmData: UpdateFarmDto) => {
@@ -52,73 +72,44 @@ const LandManagement = () => {
 
   const handleDeleteFarm = async () => {
     await deleteFarm();
-    setDivisions([]);
-    setPlants([]);
+    // Clear any existing land divisions and plants from state
+    await refetchLandDivisions();
+    await getAllPlants();
   };
 
   const handleCreatePlant = async (data: CreatePlantDto) => {
-    setIsLoading(true);
-
-    const newPlant: Plant = {
-      id: Date.now(),
-      name: data.name,
-      description: data.description,
-      image_url: data.image_url,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    setTimeout(() => {
-      setPlants([...plants, newPlant]);
-      setIsLoading(false);
-    }, 1000);
+    await createPlant(data);
+    // Refetch plants to update the list
+    await getAllPlants();
   };
 
   const handleCreateDivision = async (data: CreateLandDivisionDto) => {
-    setIsLoading(true);
-
-    const selectedPlant = data.plantId
-      ? plants.find((p) => p.id === data.plantId)
-      : undefined;
-
-    const newDivision: LandDivision = {
-      id: Date.now(),
-      name: data.name,
-      area: data.area,
-      cultivation_status: data.cultivationStatus,
-      geolocation: data.geolocation,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      farm_id: farm?.id || 1,
-      plant_id: data.plantId,
-      plant: selectedPlant,
-    };
-
-    setTimeout(() => {
-      setDivisions([...divisions, newDivision]);
-      setIsLoading(false);
-    }, 1000);
+    await createLandDivision(data);
   };
 
-  const handleDeleteDivision = (id: number) => {
-    setDivisions(divisions.filter((d) => d.id !== id));
+  const handleDeleteDivision = async (id: number) => {
+    await deleteLandDivision(id);
   };
 
-  const handleDeletePlant = (id: number) => {
-    setPlants(plants.filter((p) => p.id !== id));
-    // Also update divisions that reference this plant
-    setDivisions(
-      divisions.map((d) =>
-        d.plant_id === id ? { ...d, plant_id: undefined, plant: undefined } : d
-      )
-    );
+  const handleDeletePlant = async (id: number) => {
+    await deletePlant(id);
+    await getAllPlants();
+    await refetchLandDivisions();
   };
 
-  const totalArea = divisions.reduce((sum, div) => sum + div.area, 0);
-  const statusCounts = divisions.reduce((acc, div) => {
+  const clearError = () => {
+    clearLandDivisionError();
+    clearPlantError();
+  };
+
+  const totalArea = landDivisions.reduce((sum, div) => sum + div.area, 0);
+  const statusCounts = landDivisions.reduce((acc, div) => {
     acc[div.cultivation_status] = (acc[div.cultivation_status] || 0) + 1;
     return acc;
   }, {} as Record<CultivationStatus, number>);
+
+  const isLoading = farmLoading || landDivisionLoading || plantLoading;
+  const error = farmError || landDivisionError || plantError;
 
   if (farmLoading) {
     return (
@@ -148,6 +139,21 @@ const LandManagement = () => {
   return (
     <MainLayout>
       <div className="space-y-8 animate-fade-in">
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <p className="text-red-800 text-sm">{error}</p>
+              <button
+                onClick={clearError}
+                className="text-red-600 hover:text-red-800"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header Section */}
         <div className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 rounded-2xl p-8 border border-farmlink-lightgreen/20">
           <div className="flex items-center justify-between">
@@ -210,7 +216,7 @@ const LandManagement = () => {
               value="divisions"
               className="data-[state=active]:bg-farmlink-green/10"
             >
-              Land Divisions ({divisions.length})
+              Land Divisions ({landDivisions.length})
             </TabsTrigger>
             <TabsTrigger
               value="plants"
@@ -222,7 +228,7 @@ const LandManagement = () => {
 
           <TabsContent value="divisions" className="mt-6">
             {/* Statistics Cards */}
-            {divisions.length > 0 && (
+            {landDivisions.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-4">
@@ -303,12 +309,12 @@ const LandManagement = () => {
                 <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
                   <CardHeader className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 border-b border-farmlink-lightgreen/20">
                     <CardTitle className="text-farmlink-darkgreen">
-                      Land Divisions ({divisions.length})
+                      Land Divisions ({landDivisions.length})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
                     <LandDivisionList
-                      divisions={divisions}
+                      divisions={landDivisions}
                       onDelete={handleDeleteDivision}
                     />
                   </CardContent>

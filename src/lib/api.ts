@@ -16,6 +16,10 @@ import {
   CreateFarmDto,
   FarmResponse,
   UpdateFarmDto,
+  LandDivisionResponse,
+  CreateLandDivisionDto,
+  CreatePlantDto,
+  PlantResponse,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -213,6 +217,90 @@ class ApiClient {
 
   async deleteFarm(): Promise<FarmResponse> {
     return this.request<FarmResponse>("/farms/delete", {
+      method: "DELETE",
+    });
+  }
+
+  async createLandDivision(
+    landDivisionData: CreateLandDivisionDto
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>("/land-divisions/create", {
+      method: "POST",
+      body: JSON.stringify(landDivisionData),
+    });
+  }
+
+  async getLandDivisions(): Promise<LandDivisionResponse[]> {
+    return this.request<LandDivisionResponse[]>("/land-divisions/farm");
+  }
+
+  async getLandDivisionById(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}`
+    );
+  }
+
+  async updateLandDivision(
+    landDivisionId: number,
+    landDivisionData: CreateLandDivisionDto
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/update`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(landDivisionData),
+      }
+    );
+  }
+
+  async deleteLandDivision(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/delete`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
+  async getLandDivisionPlant(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/plants`
+    );
+  }
+
+  async createPlant(plantData: CreatePlantDto): Promise<PlantResponse> {
+    return this.request<PlantResponse>("/plants/create", {
+      method: "POST",
+      body: JSON.stringify(plantData),
+    });
+  }
+
+  async getAllPlants(): Promise<PlantResponse[]> {
+    return this.request<PlantResponse[]>("/plants");
+  }
+
+  async getPlantById(plantId: number): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}`);
+  }
+
+  async updatePlant(
+    plantId: number,
+    plantData: CreatePlantDto
+  ): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}/update`, {
+      method: "PATCH",
+      body: JSON.stringify(plantData),
+    });
+  }
+
+  async deletePlant(plantId: number): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}/delete`, {
       method: "DELETE",
     });
   }
