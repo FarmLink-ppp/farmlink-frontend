@@ -14,8 +14,9 @@ import {
   ProfileResponse,
   ScanWithDiagnosis,
   CreateScanResponse,
+  
 } from "@/types";
-
+import type { AssignTaskDto, CreateTaskDto, Task, TaskAssignment } from "@/types/task";
 const API_BASE_URL = "http://localhost:3000/api";
 
 class ApiClient {
@@ -190,6 +191,23 @@ class ApiClient {
   async getAllDiagnosis(): Promise<ScanWithDiagnosis[]> {
     return this.request<ScanWithDiagnosis[]>("/plant-health/diagnosis");
   }
+  async createTask(data: CreateTaskDto): Promise<Task> {
+    console.log("Payload sent to API:", data);
+  return this.request<Task>("/tasks", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
+async assignWorkerToTask(taskId: number, data: AssignTaskDto): Promise<TaskAssignment> {
+  console.log("Payload sent to API:",data);
+  return this.request<TaskAssignment>(`/tasks/${taskId}/assign`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+}
+
+
 
 export const apiClient = new ApiClient();

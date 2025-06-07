@@ -21,28 +21,24 @@ import { CalendarDays, Filter, Plus, CheckCircle, Clock, AlertTriangle, Target, 
 import TaskCalendar from "@/components/tasks/TaskCalendar";
 import { useTasks, useCreateTask, useUpdateTaskStatus } from "@/hooks/useTasks";
 import { useWorkers } from "@/hooks/useWorkers";
-
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  assignee: { name: string };
-  dueDate: string;
-  priority: "low" | "medium" | "high";
-  status: "pending" | "in-progress" | "completed";
-}
+import { CreateTaskDto, TaskPriority } from "@/types/task";
+import {apiClient} from "@/lib/api"; // Adjust the import based on your project structure
+import { Task } from "@/types/task";
 
 const Tasks = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    dueDate: "",
-    assignee: "",
-    priority: "",
-    status: "pending",
-  });
+
+  const [newTask, setNewTask] = useState<CreateTaskDto>({
+  title: "",
+  description: "",
+  priority: TaskPriority.MEDIUM, // default
+  startDate: new Date().toISOString(), // default to today
+  dueDate: "", 
+  landDivisionId: undefined,
+});
+const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
+
   const [filterPriority, setFilterPriority] = useState("all");
 
   // Use React Query hooks
@@ -73,32 +69,63 @@ const Tasks = () => {
 
   const filteredTasks = getFilteredTasks();
 
-  const handleCreateTask = () => {
-    if (!newTask.title || !newTask.description || !newTask.dueDate || !newTask.assignee || !newTask.priority) {
-      return;
-    }
+  // const handleCreateTask = () => {
+  //   if (!newTask.title || !newTask.description || !newTask.dueDate || !newTask.assignee || !newTask.priority) {
+  //     return;
+  //   }
 
-    createTaskMutation.mutate({
-      title: newTask.title,
-      description: newTask.description,
-      dueDate: newTask.dueDate,
-      priority: newTask.priority as "low" | "medium" | "high",
-      status: newTask.status as "pending" | "in-progress" | "completed",
-      assigneeName: newTask.assignee,
-    }, {
-      onSuccess: () => {
-        setNewTask({
-          title: "",
-          description: "",
-          dueDate: "",
-          assignee: "",
-          priority: "",
-          status: "pending",
-        });
-        setIsDialogOpen(false);
-      }
+  //   createTaskMutation.mutate({
+  //     title: newTask.title,
+  //     description: newTask.description,
+  //     dueDate: newTask.dueDate,
+  //     priority: newTask.priority as "low" | "medium" | "high",
+  //     status: newTask.status as "pending" | "in-progress" | "completed",
+  //     assigneeName: newTask.assignee,
+  //   }, {
+  //     onSuccess: () => {
+  //       setNewTask({
+  //         title: "",
+  //         description: "",
+  //         dueDate: "",
+  //         assignee: "",
+  //         priority: "",
+  //         status: "pending",
+  //       });
+  //       setIsDialogOpen(false);
+  //     }
+  //   });
+  // };
+const handleCreateTask = async () => {
+  try {
+    // Optionally validate dates here
+    // if (new Date(newTask.startDate) > new Date(newTask.dueDate)) {
+    //   alert("Start date cannot be after due date.");
+    //   return;
+    // }
+    const createdTask = await apiClient.createTask(newTask);
+    console.log("Created task:", createdTask);
+// Step 2: Assign worker if selected
+    if (assigneeId) {
+      await apiClient.assignWorkerToTask("5", { workerId: 2 });
+    }
+    // Optional: Reset form or show success message
+    console.log("Task created and assigned successfully!");
+    // Reset form
+    setNewTask({
+      title: "",
+      description: "",
+      priority: TaskPriority.MEDIUM,
+      startDate: new Date().toISOString(), 
+      dueDate: "",
+      landDivisionId: undefined,
     });
-  };
+
+    // Optionally refresh task list or close modal
+  } catch (error) {
+    console.error("Error creating task:", error);
+    alert("Failed to create task. Please try again.");
+  }
+};
 
   const handleStatusChange = (taskId: number, newStatus: "pending" | "in-progress" | "completed") => {
     updateTaskStatusMutation.mutate({ taskId, status: newStatus });
@@ -322,22 +349,22 @@ const Tasks = () => {
                         id="dueDate" 
                         type="date"
                         value={newTask.dueDate}
-                        onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                        onChange={(e) => setNewTask({...newTask, dueDate: new Date(e.target.value).toISOString(),})}
                         className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="assignee" className="text-farmlink-darkgreen font-medium">Assign To</Label>
                       <Select 
-                        value={newTask.assignee}
-                        onValueChange={(value) => setNewTask({...newTask, assignee: value})}
+                        value={assigneeId?.toString() || ""}
+                        onValueChange={(value) => setAssigneeId(Number(value))}
                       >
                         <SelectTrigger id="assignee" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
                           <SelectValue placeholder="Select worker" />
                         </SelectTrigger>
                         <SelectContent>
                           {availableWorkers.map((worker) => (
-                            <SelectItem key={worker.id} value={worker.name}>
+                            <SelectItem key={worker.id} value={worker.id.toString()}>
                               {worker.name} - {worker.position}
                             </SelectItem>
                           ))}
@@ -350,19 +377,19 @@ const Tasks = () => {
                       <Label htmlFor="priority" className="text-farmlink-darkgreen font-medium">Priority</Label>
                       <Select
                         value={newTask.priority}
-                        onValueChange={(value) => setNewTask({...newTask, priority: value})}
+                        onValueChange={(value) => setNewTask({...newTask, priority: value as TaskPriority})}
                       >
                         <SelectTrigger id="priority" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
                           <SelectValue placeholder="Set priority" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value={TaskPriority.LOW}>Low</SelectItem>
+                          <SelectItem value={TaskPriority.MEDIUM}>Medium</SelectItem>
+                          <SelectItem value={TaskPriority.HIGH}>High</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="status" className="text-farmlink-darkgreen font-medium">Status</Label>
                       <Select
                         value={newTask.status}
@@ -377,7 +404,7 @@ const Tasks = () => {
                           <SelectItem value="completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 <DialogFooter>
