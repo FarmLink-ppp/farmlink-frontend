@@ -1,14 +1,18 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, MapPin } from "lucide-react";
-import { CultivationStatus, CreateLandDivisionDto, Plant } from '@/types/land';
-import { toast } from 'sonner';
-import { title } from 'process';
+import { CultivationStatus, CreateLandDivisionDto, Plant } from "@/types";
+import { toast } from "sonner";
 
 interface LandDivisionFormProps {
   onSubmit: (data: CreateLandDivisionDto) => void;
@@ -16,24 +20,28 @@ interface LandDivisionFormProps {
   isLoading?: boolean;
 }
 
-const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, isLoading = false }) => {
+const LandDivisionForm: React.FC<LandDivisionFormProps> = ({
+  onSubmit,
+  plants,
+  isLoading = false,
+}) => {
   const [formData, setFormData] = useState<CreateLandDivisionDto>({
-    name: '',
+    name: "",
     area: 0,
     cultivationStatus: CultivationStatus.FALLOW,
-    geolocation: '',
-    plantId: undefined
+    geolocation: "",
+    plantId: undefined,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
     setFormData({
-      name: '',
+      name: "",
       area: 0,
       cultivationStatus: CultivationStatus.FALLOW,
-      geolocation: '',
-      plantId: undefined
+      geolocation: "",
+      plantId: undefined,
     });
   };
 
@@ -44,15 +52,17 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
           const { latitude, longitude } = position.coords;
           setFormData({
             ...formData,
-            geolocation: `${latitude},${longitude}`
+            geolocation: `${latitude},${longitude}`,
           });
         },
         (error) => {
-          console.error('Error getting location:', error);
-        // Add user feedback
-        toast.error("Location Error", {
-          description: `Failed to access your location: ${error.message || 'Unknown error'}. Please check permissions or enter coordinates manually.`,
-        });
+          console.error("Error getting location:", error);
+          // Add user feedback
+          toast.error("Location Error", {
+            description: `Failed to access your location: ${
+              error.message || "Unknown error"
+            }. Please check permissions or enter coordinates manually.`,
+          });
         }
       );
     }
@@ -69,11 +79,15 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-farmlink-darkgreen">Name</Label>
+            <Label htmlFor="name" className="text-farmlink-darkgreen">
+              Name
+            </Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., North Plot"
               required
               className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
@@ -81,14 +95,21 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="area" className="text-farmlink-darkgreen">Area (hectares)</Label>
+            <Label htmlFor="area" className="text-farmlink-darkgreen">
+              Area (hectares)
+            </Label>
             <Input
               id="area"
               type="number"
               step="0.1"
               min="0"
               value={formData.area}
-              onChange={(e) => setFormData({ ...formData, area: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  area: parseFloat(e.target.value) || 0,
+                })
+              }
               placeholder="1.5"
               required
               className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
@@ -96,10 +117,12 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
           </div>
 
           <div className="space-y-2">
-            <Label className="text-farmlink-darkgreen">Cultivation Status</Label>
+            <Label className="text-farmlink-darkgreen">
+              Cultivation Status
+            </Label>
             <Select
               value={formData.cultivationStatus}
-              onValueChange={(value: CultivationStatus) => 
+              onValueChange={(value: CultivationStatus) =>
                 setFormData({ ...formData, cultivationStatus: value })
               }
             >
@@ -107,8 +130,12 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={CultivationStatus.PLANTED}>Planted</SelectItem>
-                <SelectItem value={CultivationStatus.HARVESTED}>Harvested</SelectItem>
+                <SelectItem value={CultivationStatus.PLANTED}>
+                  Planted
+                </SelectItem>
+                <SelectItem value={CultivationStatus.HARVESTED}>
+                  Harvested
+                </SelectItem>
                 <SelectItem value={CultivationStatus.FALLOW}>Fallow</SelectItem>
               </SelectContent>
             </Select>
@@ -118,8 +145,11 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
             <Label className="text-farmlink-darkgreen">Plant (Optional)</Label>
             <Select
               value={formData.plantId?.toString() || "none"}
-              onValueChange={(value) => 
-                setFormData({ ...formData, plantId: value === "none" ? undefined : parseInt(value) })
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  plantId: value === "none" ? undefined : parseInt(value),
+                })
               }
             >
               <SelectTrigger className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
@@ -137,12 +167,16 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="geolocation" className="text-farmlink-darkgreen">GPS Coordinates</Label>
+            <Label htmlFor="geolocation" className="text-farmlink-darkgreen">
+              GPS Coordinates
+            </Label>
             <div className="flex gap-2">
               <Input
                 id="geolocation"
                 value={formData.geolocation}
-                onChange={(e) => setFormData({ ...formData, geolocation: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, geolocation: e.target.value })
+                }
                 placeholder="35.6895,139.6917"
                 required
                 className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
@@ -158,12 +192,12 @@ const LandDivisionForm: React.FC<LandDivisionFormProps> = ({ onSubmit, plants, i
             </div>
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isLoading}
             className="w-full bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
           >
-            {isLoading ? 'Adding...' : 'Add Land Division'}
+            {isLoading ? "Adding..." : "Add Land Division"}
           </Button>
         </form>
       </CardContent>

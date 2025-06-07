@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import LandDivisionForm from "@/components/land/LandDivisionForm";
 import LandDivisionList from "@/components/land/LandDivisionList";
@@ -11,22 +11,50 @@ import {
   LandDivision,
   Plant,
   CultivationStatus,
+  UpdateFarmDto,
 } from "@/types";
+import { CreateFarmDto } from "@/types";
+import { useFarm } from "@/hooks/useFarm";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Save, Map, Sparkles, BarChart3, Leaf } from "lucide-react";
+  Save,
+  Map,
+  Sparkles,
+  BarChart3,
+  Leaf,
+  MapPin,
+  Calendar,
+} from "lucide-react";
+import FarmForm from "@/components/land/FarmForm";
+import FarmSettings from "@/components/land/FarmSettings";
+import DeleteFarm from "@/components/land/DeleteFarm";
 
 const LandManagement = () => {
+  const {
+    farm,
+    isLoading: farmLoading,
+    error: farmError,
+    createFarm,
+    updateFarm,
+    deleteFarm,
+  } = useFarm();
   const [divisions, setDivisions] = useState<LandDivision[]>([]);
   const [plants, setPlants] = useState<Plant[]>([]);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [savedSuccessfully, setSavedSuccessfully] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleCreateFarm = async (farmData: CreateFarmDto) => {
+    await createFarm(farmData);
+  };
+
+  const handleUpdateFarm = async (farmData: UpdateFarmDto) => {
+    await updateFarm(farmData);
+  };
+
+  const handleDeleteFarm = async () => {
+    await deleteFarm();
+    setDivisions([]);
+    setPlants([]);
+  };
 
   const handleCreatePlant = async (data: CreatePlantDto) => {
     setIsLoading(true);
@@ -61,7 +89,7 @@ const LandManagement = () => {
       geolocation: data.geolocation,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      farm_id: 1,
+      farm_id: farm?.id || 1,
       plant_id: data.plantId,
       plant: selectedPlant,
     };
@@ -86,22 +114,36 @@ const LandManagement = () => {
     );
   };
 
-  const handleSave = () => {
-    localStorage.setItem("landDivisions", JSON.stringify(divisions));
-    localStorage.setItem("plants", JSON.stringify(plants));
-    setSavedSuccessfully(true);
-    setTimeout(() => {
-      setShowSaveDialog(false);
-      setSavedSuccessfully(false);
-    }, 1500);
-  };
-
-  // Calculate statistics
   const totalArea = divisions.reduce((sum, div) => sum + div.area, 0);
   const statusCounts = divisions.reduce((acc, div) => {
     acc[div.cultivation_status] = (acc[div.cultivation_status] || 0) + 1;
     return acc;
   }, {} as Record<CultivationStatus, number>);
+
+  if (farmLoading) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-8 h-8 border-4 border-farmlink-green/30 border-t-farmlink-green rounded-full animate-spin mx-auto" />
+            <p className="text-farmlink-darkgreen/70">
+              Loading your farm information...
+            </p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!farm) {
+    return (
+      <FarmForm
+        onSubmit={handleCreateFarm}
+        isLoading={farmLoading}
+        error={farmError}
+      />
+    );
+  }
 
   return (
     <MainLayout>
@@ -115,20 +157,45 @@ const LandManagement = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-farmlink-darkgreen">
-                  Land Management
+                  {farm.name}
                 </h1>
                 <p className="text-farmlink-darkgreen/70 text-lg">
-                  Manage your plants and land divisions
+                  Land Management Dashboard
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save Data
-            </Button>
+            <div className="flex items-center space-x-3">
+              <FarmSettings
+                farm={farm}
+                onUpdateFarm={handleUpdateFarm}
+                isLoading={farmLoading}
+              />
+              <DeleteFarm
+                farm={farm}
+                onDeleteFarm={handleDeleteFarm}
+                isLoading={farmLoading}
+              />
+            </div>
+          </div>
+
+          {/* Farm Info Bar */}
+          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-farmlink-darkgreen/80">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4" />
+              <span>{farm.location}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>
+                {farm.total_area} {farm.area_unit.toLowerCase()}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4" />
+              <span>
+                Created {new Date(farm.created_at).toLocaleDateString()}
+              </span>
+            </div>
           </div>
 
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-farmlink-lightgreen/20 text-farmlink-darkgreen text-sm font-medium mt-4">
@@ -163,7 +230,7 @@ const LandManagement = () => {
                       <BarChart3 className="h-5 w-5 text-farmlink-green" />
                       <div>
                         <p className="text-sm text-farmlink-darkgreen/70">
-                          Total Area
+                          Total Cultivated
                         </p>
                         <p className="text-lg font-semibold text-farmlink-darkgreen">
                           {totalArea} ha
@@ -273,63 +340,6 @@ const LandManagement = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent className="bg-white border-farmlink-lightgreen/20">
-          <DialogHeader>
-            <DialogTitle className="text-farmlink-darkgreen">
-              {savedSuccessfully ? "Saved Successfully!" : "Save Data"}
-            </DialogTitle>
-          </DialogHeader>
-          {!savedSuccessfully ? (
-            <div className="space-y-4 pt-4">
-              <p className="text-farmlink-darkgreen/70">
-                Save your plants and land divisions? This will overwrite any
-                previously saved data.
-              </p>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowSaveDialog(false)}
-                  className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-farmlink-green/10 text-farmlink-green mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-check"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                </div>
-                <p className="text-farmlink-darkgreen">
-                  Your data has been saved successfully!
-                </p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </MainLayout>
   );
 };

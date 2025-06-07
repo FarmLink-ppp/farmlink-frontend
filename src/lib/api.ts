@@ -1,5 +1,4 @@
 import {
-  User,
   LoginDto,
   CreateUserDto,
   EmailVerificationDto,
@@ -14,6 +13,9 @@ import {
   ProfileResponse,
   ScanWithDiagnosis,
   CreateScanResponse,
+  CreateFarmDto,
+  FarmResponse,
+  UpdateFarmDto,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -189,6 +191,30 @@ class ApiClient {
 
   async getAllDiagnosis(): Promise<ScanWithDiagnosis[]> {
     return this.request<ScanWithDiagnosis[]>("/plant-health/diagnosis");
+  }
+
+  async createFarm(farmData: CreateFarmDto): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/create", {
+      method: "POST",
+      body: JSON.stringify(farmData),
+    });
+  }
+
+  async getFarm(): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms");
+  }
+
+  async updateFarm(farmData: UpdateFarmDto): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/update", {
+      method: "PATCH",
+      body: JSON.stringify(farmData),
+    });
+  }
+
+  async deleteFarm(): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/delete", {
+      method: "DELETE",
+    });
   }
 }
 
