@@ -1,3 +1,5 @@
+import { FarmerWorker } from "@/pages/Workers";
+
 // Enums matching your Prisma schema
 export enum TaskStatus {
   PENDING = "PENDING",
@@ -21,7 +23,7 @@ export interface TaskAssignment {
   worker_id: number;
   // Optional nesting (can be expanded later)
   // task?: Task;
-  // worker?: Worker;
+   worker?:FarmerWorker;
 }
 
 // Basic Task model

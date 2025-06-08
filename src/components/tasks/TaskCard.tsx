@@ -16,8 +16,8 @@ interface TaskCardProps {
   assignee: Author;
   dueDate: string;
   priority: "low" | "medium" | "high";
-  status: "pending" | "in-progress" | "completed";
-  onStatusChange?: (status: "pending" | "in-progress" | "completed") => void;
+  status: "pending" | "in_progress" | "completed";
+  onStatusChange?: (status: "pending" | "in_progress" | "completed") => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -59,7 +59,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   
   const handleStatusChange = (value: string) => {
     if (onStatusChange) {
-      onStatusChange(value as "pending" | "in-progress" | "completed");
+      onStatusChange(value as "pending" | "in_progress" | "completed");
     }
   };
 
@@ -124,7 +124,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               </SelectTrigger>
               <SelectContent className="bg-white/95 backdrop-blur-sm border-farmlink-lightgreen/30">
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>

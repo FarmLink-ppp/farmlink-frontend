@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import TaskCard from "@/components/tasks/TaskCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,14 +21,17 @@ import { CalendarDays, Filter, Plus, CheckCircle, Clock, AlertTriangle, Target, 
 import TaskCalendar from "@/components/tasks/TaskCalendar";
 import { useTasks, useCreateTask, useUpdateTaskStatus } from "@/hooks/useTasks";
 import { useWorkers } from "@/hooks/useWorkers";
-import { CreateTaskDto, TaskPriority } from "@/types/task";
+import { CreateTaskDto, TaskPriority, TaskStatus } from "@/types/task";
 import {apiClient} from "@/lib/api"; // Adjust the import based on your project structure
 import { Task } from "@/types/task";
+import { FarmerWorker } from "@/pages/Workers";
+import { toast } from "sonner";
 
 const Tasks = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+ const [workers, setWorkers] = useState<FarmerWorker[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState<CreateTaskDto>({
   title: "",
   description: "",
@@ -42,32 +45,80 @@ const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
   const [filterPriority, setFilterPriority] = useState("all");
 
   // Use React Query hooks
-  const { data: tasks = [], isLoading, error } = useTasks();
-  const createTaskMutation = useCreateTask();
-  const updateTaskStatusMutation = useUpdateTaskStatus();
-  
-  // Get workers for assignment
-  const { workers: availableWorkers } = useWorkers();
-
-  // Function to filter tasks based on the active tab and priority filter
-  const getFilteredTasks = () => {
-    return tasks.filter((task) => {
-      // First filter by tab (status)
-      const statusMatches = 
-        activeTab === "all" || 
-        activeTab === task.status || 
-        (activeTab === "calendar" ? true : false);
-      
-      // Then filter by priority if it's set
-      const priorityMatches =
-        filterPriority === "all" ||
-        filterPriority === task.priority;
-        
-      return statusMatches && priorityMatches;
-    });
+ const [tasks, setTasks] = useState<Task[]>([]);
+const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+  const fetchTasks = async () => {
+    try {
+      const data = await apiClient.getTasksForUser();
+      console.log("Raw data from API:", data);
+      setTasks(data as Task[]);
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch tasks");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredTasks = getFilteredTasks();
+  fetchTasks();
+}, []);
+  // Get workers for assignment
+ 
+  useEffect(() => {
+  apiClient.getWorkersByEmployer()
+    .then((data) => {
+      const mapped: FarmerWorker[] = data.map((w: any) => ({
+        id: w.id, // ✅ Ensure the original object has an `id`
+        name: w.name,
+        contact: w.contact,
+        employment_status: w.employment_status,
+        created_at: w.created_at,
+        updated_at: w.updated_at,
+        employerId: w.employerId,
+        email: `${w.name.replace(/\s+/g, ".").toLowerCase()}@farm.com`,
+        phone: w.contact,
+        position: "Farm Worker",
+        hireDate: new Date(w.created_at).toISOString().split("T")[0],
+        status: w.employment_status === "ACTIVE" ? "active" : "inactive",
+        address: "", // You can populate this later if needed
+        image_url: w.image_url,
+        imageUrl: w.image_url, // Support both camel and snake if needed
+      }));
+      setWorkers(mapped);
+    })
+    .catch((err) => {
+      toast.error(err.message || "Failed to load workers.");
+    })
+    .finally(() => setLoading(false));
+}, []);
+  // Function to filter tasks based on the active tab and priority filter
+  const normalizeStatus = (status: string) => status.toLowerCase().replace(/[_ ]/g, "");
+
+  
+const getFilteredTasks = () => {
+  return tasks.filter((task) => {
+    // Show all tasks if 'all' tab or 'calendar' tab is selected
+    if (activeTab === "all" || activeTab === "calendar") {
+      // Just filter by priority then
+      return (
+        filterPriority === "all" ||
+        filterPriority === task.priority.toLowerCase()
+      );
+    }
+
+    // Otherwise, check if status matches normalized values
+    const statusMatches = normalizeStatus(activeTab) === normalizeStatus(task.status);
+
+    const priorityMatches =
+      filterPriority === "all" ||
+      filterPriority === task.priority.toLowerCase();
+
+    return statusMatches && priorityMatches;
+  });
+};
+
+const filteredTasks = getFilteredTasks();
+ 
 
   // const handleCreateTask = () => {
   //   if (!newTask.title || !newTask.description || !newTask.dueDate || !newTask.assignee || !newTask.priority) {
@@ -97,16 +148,12 @@ const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
   // };
 const handleCreateTask = async () => {
   try {
-    // Optionally validate dates here
-    // if (new Date(newTask.startDate) > new Date(newTask.dueDate)) {
-    //   alert("Start date cannot be after due date.");
-    //   return;
-    // }
+    
     const createdTask = await apiClient.createTask(newTask);
     console.log("Created task:", createdTask);
 // Step 2: Assign worker if selected
     if (assigneeId) {
-      await apiClient.assignWorkerToTask("5", { workerId: 2 });
+      await apiClient.assignWorkerToTask(createdTask.id, { workerId: assigneeId });
     }
     // Optional: Reset form or show success message
     console.log("Task created and assigned successfully!");
@@ -119,7 +166,7 @@ const handleCreateTask = async () => {
       dueDate: "",
       landDivisionId: undefined,
     });
-
+    setAssigneeId(undefined);
     // Optionally refresh task list or close modal
   } catch (error) {
     console.error("Error creating task:", error);
@@ -127,22 +174,19 @@ const handleCreateTask = async () => {
   }
 };
 
-  const handleStatusChange = (taskId: number, newStatus: "pending" | "in-progress" | "completed") => {
-    updateTaskStatusMutation.mutate({ taskId, status: newStatus });
-  };
-
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farmlink-green mx-auto mb-4"></div>
-            <p className="text-farmlink-darkgreen">Loading tasks...</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
+  const handleStatusChange = async(taskId: number, newStatus: "pending" | "in_progress" | "completed") => {
+  const apiStatus = newStatus.toUpperCase().replace("-", "_") as
+    | "PENDING"
+    | "IN_PROGRESS"
+    | "COMPLETED";
+    try {
+    await apiClient.updateTaskStatus(taskId, { status: apiStatus as TaskStatus });
+   window.location.reload();
+    // optionally update local state if needed
+  } catch (error) {
+    console.error("Status update failed", error);
   }
+};
 
   if (error) {
     return (
@@ -167,10 +211,10 @@ const handleCreateTask = async () => {
                 key={task.id}
                 title={task.title}
                 description={task.description}
-                assignee={task.assignee}
-                dueDate={task.dueDate}
-                priority={task.priority}
-                status={task.status}
+                assignee={{ name: task.assignments[0]?.worker?.name || "Unassigned" }}
+                dueDate={task.due_date.split("T")[0]}
+                priority={task.priority.toLowerCase() as "low" | "medium" | "high"}
+                status={task.status.toLowerCase() as "pending" | "in_progress" | "completed"}
                 onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
               />
             )) : (
@@ -212,21 +256,21 @@ const handleCreateTask = async () => {
                     <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
                     Completed
                   </span>
-                  <span className="font-bold text-green-600 text-lg">{tasks.filter(t => t.status === "completed").length}</span>
+                  <span className="font-bold text-green-600 text-lg">{tasks.filter(t => t.status === TaskStatus.COMPLETED).length}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-blue-50">
                   <span className="text-farmlink-darkgreen font-medium flex items-center">
                     <Clock className="h-4 w-4 mr-2 text-blue-600" />
                     In Progress
                   </span>
-                  <span className="font-bold text-blue-600 text-lg">{tasks.filter(t => t.status === "in-progress").length}</span>
+                  <span className="font-bold text-blue-600 text-lg">{tasks.filter(t => t.status === TaskStatus.IN_PROGRESS).length}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-yellow-50">
                   <span className="text-farmlink-darkgreen font-medium flex items-center">
                     <Clock className="h-4 w-4 mr-2 text-yellow-600" />
                     Pending
                   </span>
-                  <span className="font-bold text-yellow-600 text-lg">{tasks.filter(t => t.status === "pending").length}</span>
+                  <span className="font-bold text-yellow-600 text-lg">{tasks.filter(t => t.status === TaskStatus.PENDING).length}</span>
                 </div>
                 <div className="pt-3 border-t border-farmlink-lightgreen/20">
                   <div className="flex justify-between items-center p-3 rounded-xl bg-red-50">
@@ -234,7 +278,7 @@ const handleCreateTask = async () => {
                       <AlertTriangle className="h-4 w-4 mr-2 text-red-600" />
                       High Priority
                     </span>
-                    <span className="text-red-600 font-bold text-lg">{tasks.filter(t => t.priority === "high").length}</span>
+                    <span className="text-red-600 font-bold text-lg">{tasks.filter(t => t.priority === TaskPriority.HIGH).length}</span>
                   </div>
                 </div>
               </div>
@@ -263,30 +307,6 @@ const handleCreateTask = async () => {
             </CardContent>
           </Card>
           
-          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-farmlink-darkgreen">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { action: "Task completed", task: "Fertilize corn field", user: "John", time: "2 hours ago" },
-                  { action: "Task created", task: "Inspect greenhouse vents", user: "Sarah", time: "Yesterday" },
-                  { action: "Task updated", task: "Order new seeds", user: "Mike", time: "Yesterday" },
-                ].map((activity, i) => (
-                  <div key={i} className="border-b border-farmlink-lightgreen/20 pb-3 last:border-0 last:pb-0">
-                    <p className="text-farmlink-darkgreen">
-                      <span className="font-semibold">{activity.action}:</span>{" "}
-                      <span className="text-farmlink-darkgreen/80">{activity.task}</span>
-                    </p>
-                    <p className="text-xs text-farmlink-darkgreen/60 mt-1">
-                      By {activity.user} • {activity.time}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     );
@@ -363,7 +383,7 @@ const handleCreateTask = async () => {
                           <SelectValue placeholder="Select worker" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableWorkers.map((worker) => (
+                          {workers.map((worker) => (
                             <SelectItem key={worker.id} value={worker.id.toString()}>
                               {worker.name} - {worker.position}
                             </SelectItem>
@@ -389,22 +409,6 @@ const handleCreateTask = async () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    {/* <div className="space-y-2">
-                      <Label htmlFor="status" className="text-farmlink-darkgreen font-medium">Status</Label>
-                      <Select
-                        value={newTask.status}
-                        onValueChange={(value) => setNewTask({...newTask, status: value as "pending" | "in-progress" | "completed"})}
-                      >
-                        <SelectTrigger id="status" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
-                          <SelectValue placeholder="Set status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div> */}
                   </div>
                 </div>
                 <DialogFooter>
@@ -413,10 +417,10 @@ const handleCreateTask = async () => {
                   </Button>
                   <Button 
                     onClick={handleCreateTask} 
-                    disabled={createTaskMutation.isPending}
+                    // disabled={createTaskMutation.isPending}
                     className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
                   >
-                    {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+                    {"Create Task"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -429,14 +433,21 @@ const handleCreateTask = async () => {
             <TabsList className="bg-white/70 backdrop-blur-sm border border-farmlink-lightgreen/30">
               <TabsTrigger value="all" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">All</TabsTrigger>
               <TabsTrigger value="pending" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Pending</TabsTrigger>
-              <TabsTrigger value="in-progress" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">In Progress</TabsTrigger>
+              <TabsTrigger value="in_progress" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">In Progress</TabsTrigger>
               <TabsTrigger value="completed" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Completed</TabsTrigger>
               <TabsTrigger value="calendar" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Calendar</TabsTrigger>
             </TabsList>
           </div>
           
           <TabsContent value="calendar" className="mt-6">
-            <TaskCalendar tasks={tasks} />
+            <TaskCalendar tasks={tasks.map(task => ({
+              id: task.id,
+              title: task.title,
+              description: task.description,
+              dueDate: (task.due_date || task.due_date) as string,
+              priority: (typeof task.priority === "string" ? task.priority.toLowerCase() : String(task.priority).toLowerCase()) as "low" | "medium" | "high",
+              status: (typeof task.status === "string" ? task.status.toLowerCase() : String(task.status).toLowerCase()) as "pending" | "in-progress" | "completed",
+            }))} />
           </TabsContent>
           
           <TabsContent value="all" className="mt-6">

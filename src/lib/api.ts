@@ -1,5 +1,4 @@
 import {
-  User,
   LoginDto,
   CreateUserDto,
   EmailVerificationDto,
@@ -15,8 +14,19 @@ import {
   ScanWithDiagnosis,
   CreateScanResponse,
   
+  CreateFarmDto,
+  FarmResponse,
+  UpdateFarmDto,
+  LandDivisionResponse,
+  CreateLandDivisionDto,
+  CreatePlantDto,
+  PlantResponse,
+  UpdateLandDivisionDto,
+  UpdatePlantDto,
+  FollowResponse,
+  Follow,
 } from "@/types";
-import type { AssignTaskDto, CreateTaskDto, Task, TaskAssignment } from "@/types/task";
+import type { AssignTaskDto, CreateTaskDto, Task, TaskAssignment, UpdateTaskStatusDto } from "@/types/task";
 const API_BASE_URL = "http://localhost:3000/api";
 
 class ApiClient {
@@ -191,6 +201,218 @@ class ApiClient {
   async getAllDiagnosis(): Promise<ScanWithDiagnosis[]> {
     return this.request<ScanWithDiagnosis[]>("/plant-health/diagnosis");
   }
+
+  async createFarm(farmData: CreateFarmDto): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/create", {
+      method: "POST",
+      body: JSON.stringify(farmData),
+    });
+  }
+
+  async getFarm(): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms");
+  }
+
+  async updateFarm(farmData: UpdateFarmDto): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/update", {
+      method: "PATCH",
+      body: JSON.stringify(farmData),
+    });
+  }
+
+  async deleteFarm(): Promise<FarmResponse> {
+    return this.request<FarmResponse>("/farms/delete", {
+      method: "DELETE",
+    });
+  }
+
+  async createLandDivision(
+    landDivisionData: CreateLandDivisionDto
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>("/land-divisions/create", {
+      method: "POST",
+      body: JSON.stringify(landDivisionData),
+    });
+  }
+
+  async getLandDivisions(): Promise<LandDivisionResponse[]> {
+    return this.request<LandDivisionResponse[]>("/land-divisions/farm");
+  }
+
+  async getLandDivisionById(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}`
+    );
+  }
+
+  async updateLandDivision(
+    landDivisionId: number,
+    landDivisionData: UpdateLandDivisionDto
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/update`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(landDivisionData),
+      }
+    );
+  }
+
+  async deleteLandDivision(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/delete`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
+  async getLandDivisionPlant(
+    landDivisionId: number
+  ): Promise<LandDivisionResponse> {
+    return this.request<LandDivisionResponse>(
+      `/land-divisions/${landDivisionId}/plants`
+    );
+  }
+
+  async createPlant(plantData: CreatePlantDto): Promise<PlantResponse> {
+    return this.request<PlantResponse>("/plants/create", {
+      method: "POST",
+      body: JSON.stringify(plantData),
+    });
+  }
+
+  async getAllPlants(): Promise<PlantResponse[]> {
+    return this.request<PlantResponse[]>("/plants");
+  }
+
+  async getPlantById(plantId: number): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}`);
+  }
+
+  async updatePlant(
+    plantId: number,
+    plantData: UpdatePlantDto
+  ): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}/update`, {
+      method: "PATCH",
+      body: JSON.stringify(plantData),
+    });
+  }
+
+  async deletePlant(plantId: number): Promise<PlantResponse> {
+    return this.request<PlantResponse>(`/plants/${plantId}/delete`, {
+      method: "DELETE",
+    });
+  }
+  // WORKERS
+  async getWorkersByEmployer(): Promise<Worker[]> {
+    return this.request<Worker[]>("/worker/employer");
+  }
+
+  async getWorkersByStatus(status: "ACTIVE" | "INACTIVE"): Promise<Worker[]> {
+    return this.request<Worker[]>(`/worker?status=${status}`);
+  }
+
+  async createWorker(data: {
+    name: string;
+    contact: string;
+    imageUrl?: string;
+  }): Promise<Worker> {
+    return this.request<Worker>("/worker", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWorker(
+    id: number,
+    data: {
+      name?: string;
+      contact?: string;
+      imageUrl?: string;
+      employmentStatus?: "ACTIVE" | "INACTIVE";
+    }
+  ): Promise<Worker> {
+    return this.request<Worker>(`/worker/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWorker(id: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/worker/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async uploadWorkerImage(
+    workerId: number,
+    file: File
+  ): Promise<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    const url = `${API_BASE_URL}/worker/${workerId}/profile-image`;
+    const config: RequestInit = {
+      method: "POST",
+      headers: this.getAuthHeadersForFormData(),
+      credentials: "include",
+      body: formData,
+    };
+
+    const response = await fetch(url, config);
+    if (!response.ok) {
+      throw new Error(`Image upload failed. Status: ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async followUser(userId: number): Promise<FollowResponse> {
+    return this.request<FollowResponse>(`/follow/${userId}`, {
+      method: "POST",
+    });
+  }
+
+  async unfollowUser(userId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/follow/${userId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFollowers(): Promise<Follow[]> {
+    return this.request<Follow[]>(`/follow/followers`);
+  }
+
+  async getFollowing(): Promise<Follow[]> {
+    return this.request<Follow[]>(`/follow/following`);
+  }
+
+  async getFollowRequests(): Promise<Follow[]> {
+    return this.request<Follow[]>(`/follow/requests`);
+  }
+
+  async acceptFollowRequest(requestId: number): Promise<FollowResponse> {
+    return this.request<FollowResponse>(
+      `/follow/requests/${requestId}/accept`,
+      {
+        method: "POST",
+      }
+    );
+  }
+
+  async rejectFollowRequest(requestId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/follow/requests/${requestId}/reject`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
   async createTask(data: CreateTaskDto): Promise<Task> {
     console.log("Payload sent to API:", data);
   return this.request<Task>("/tasks", {
@@ -202,6 +424,18 @@ async assignWorkerToTask(taskId: number, data: AssignTaskDto): Promise<TaskAssig
   console.log("Payload sent to API:",data);
   return this.request<TaskAssignment>(`/tasks/${taskId}/assign`, {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+async getTasksForUser(): Promise<Task[]> {
+  return this.request<Task[]>("/tasks"); // assuming base path matches your controller
+}
+async updateTaskStatus(
+  taskId: number,
+  data: UpdateTaskStatusDto
+): Promise<Task> {
+  return this.request<Task>(`/tasks/${taskId}/status`, {
+    method: "PATCH",
     body: JSON.stringify(data),
   });
 }
