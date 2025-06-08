@@ -67,10 +67,6 @@ export interface TokenResponse {
   accessToken: string;
 }
 
-export interface MessageResponse {
-  message: string;
-}
-
 export interface ProfileResponse {
   id: number;
   username: string;
