@@ -1,7 +1,7 @@
-// hooks/useUserProfile.ts
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api";
 import { User } from "@/types";
+import { ApiErrorHandler } from "@/lib/error-handler";
 
 interface UseUserProfileReturn {
   profile: User | null;
@@ -16,14 +16,20 @@ export const useUserProfile = (): UseUserProfileReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleError = (error: unknown) => {
+    const apiError = ApiErrorHandler.handle(error);
+    setError(apiError.message);
+    console.error("Profile API error:", apiError);
+  };
+
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      setError(null);
+      clearError();
       const data = await apiClient.getProfileInfo();
       setProfile(data);
     } catch (err) {
-      setError("Failed to load profile");
+      handleError(err);
     } finally {
       setLoading(false);
     }
