@@ -179,7 +179,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-farmlink-darkgreen mb-2">
-                Welcome back, Farmer! 🌱
+                Welcome back, {profile?.username || "Farmer"}! 🌱
               </h1>
               <p className="text-farmlink-darkgreen/70 text-lg">
                 Here's what's happening on your farm today
