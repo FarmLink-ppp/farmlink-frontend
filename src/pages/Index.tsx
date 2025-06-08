@@ -21,9 +21,10 @@ import {
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api";
 import { DailyTip, TaskPriority } from "@/types";
+import { usePlant } from "@/hooks/usePlants";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [plantCount, setPlantCount] = useState<number | null>(null);
   const [activeTaskCount, setActiveTaskCount] = useState<number | null>(null);
   const [communityPostCount, setCommunityPostCount] = useState<number | null>(
     null
@@ -39,15 +40,26 @@ const Index = () => {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [tasksError, setTasksError] = useState<string | null>(null);
   const { profile } = useUserProfile();
+  const {
+    isLoading: plantsLoading,
+    error: plantsError,
+    plantsCount,
+  } = usePlant();
+
+  const error = plantsError || tasksError;
 
   useEffect(() => {
-    apiClient
-      .getPlantCount()
-      .then(setPlantCount)
-      .catch((err) => {
-        console.error("Failed to fetch plant count", err);
+    if (error === "Farm not found") return;
+    if (error) {
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive",
       });
+    }
+  });
 
+  useEffect(() => {
     apiClient
       .getCommunityPostCount()
       .then(setCommunityPostCount)
@@ -128,7 +140,7 @@ const Index = () => {
   const stats = [
     {
       title: "Total Plants",
-      value: plantCount ? plantCount : "N/A",
+      value: plantsLoading ? "Loading..." : plantsCount || "N/A",
       change: "+12%",
       trend: "up" as const,
       icon: Leaf,

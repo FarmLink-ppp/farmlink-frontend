@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 
 interface UsePlantReturn {
   plants: PlantResponse[];
+  plantsCount: number;
   currentPlant: PlantResponse | null;
   isLoading: boolean;
   error: string | null;
 
   createPlant: (plantData: CreatePlantDto) => Promise<void>;
   getAllPlants: () => Promise<void>;
+  getPlantsCount: () => Promise<void>;
   getPlantById: (plantId: number) => Promise<void>;
   updatePlant: (plantId: number, plantData: UpdatePlantDto) => Promise<void>;
   deletePlant: (plantId: number) => Promise<void>;
@@ -21,6 +23,7 @@ interface UsePlantReturn {
 
 export const usePlant = (): UsePlantReturn => {
   const [plants, setPlants] = useState<PlantResponse[]>([]);
+  const [plantsCount, setPlantsCount] = useState<number>(0);
   const [currentPlant, setCurrentPlant] = useState<PlantResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,6 +101,20 @@ export const usePlant = (): UsePlantReturn => {
     }
   };
 
+  const getPlantsCount = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const count = await apiClient.getPlantCount();
+      setPlantsCount(count);
+    } catch (error) {
+      handleError(error);
+      setPlantsCount(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const clearCurrentPlant = () => {
     setCurrentPlant(null);
   };
@@ -112,12 +129,14 @@ export const usePlant = (): UsePlantReturn => {
 
   return {
     plants,
+    plantsCount,
     currentPlant,
     isLoading,
     error,
 
     createPlant,
     getAllPlants,
+    getPlantsCount,
     getPlantById,
     updatePlant,
     deletePlant,
