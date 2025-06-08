@@ -3,10 +3,16 @@ export * from "./auth";
 export * from "./plant-health";
 export * from "./farm";
 export * from "./follow";
+export * from "./profile";
+
 export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   statusCode?: number;
+}
+
+export interface MessageResponse {
+  message: string;
 }
 export interface ApiError {
   message: string;
