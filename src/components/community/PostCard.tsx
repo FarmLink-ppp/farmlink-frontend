@@ -45,6 +45,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [likes, setLikes] = useState(initialLikes);
   const [showComments, setShowComments] = useState(false);
   const [commentsList, setCommentsList] = useState<Comment[]>([]);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -102,7 +103,6 @@ const PostCard: React.FC<PostCardProps> = ({
       }
     }
   };
-
   const handleSave = () => {
     setSaved(!saved);
     // In a real app, this would save to a backend
@@ -175,39 +175,61 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
 
-<div>
-  <p className="mb-4 text-farmlink-darkgreen leading-relaxed">{content}</p>
-  {/* Fallback to single image prop for backward compatibility */}
-  {!images && image && (
-    <div className="mb-4 rounded-xl overflow-hidden shadow-md">
-      <img
-        crossOrigin="anonymous"
-        src={image}
-        alt="Post"
-        className="w-full h-auto"
-      />
-    </div>
-  )}
-  {/* Display all images if available */}
-  {images && images.length > 0 && (
-    <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      {images.map((img, idx) => (
-        <div
-          key={idx}
-          className="bg-farmlink-offwhite rounded-lg overflow-hidden border border-farmlink-lightgreen/30"
-          style={{ minHeight: 120 }}
-        >
-          <img
-            src={img}
-            alt={`Post image ${idx + 1}`}
-            className="w-full h-40 object-cover"
-            onError={(e) => (e.currentTarget.style.display = "none")}
-          />
+        <div>
+          <p className="mb-4 text-farmlink-darkgreen leading-relaxed">{content}</p>
+          {/* Fallback to single image prop for backward compatibility */}
+          {!images && image && (
+            <div className="mb-4 rounded-xl overflow-hidden shadow-md">
+              <img
+                crossOrigin="anonymous"
+                src={image}
+                alt="Post"
+                className="w-full h-auto"
+              />
+            </div>
+          )}
+          {/* Display image carousel if multiple images */}
+          {images && images.length > 0 && (
+            <div className="mb-4 relative flex items-center justify-center">
+              <div className="w-full max-w-md mx-auto rounded-xl overflow-hidden border border-farmlink-lightgreen/30 bg-farmlink-offwhite flex items-center justify-center" style={{ minHeight: 180 }}>
+                <img
+                  src={images[currentImageIdx].startsWith('http') ? images[currentImageIdx] : `/uploads/posts/${images[currentImageIdx]}`}
+                  alt={`Post image ${currentImageIdx + 1}`}
+                  className="w-full h-60 object-cover"
+                  onError={e => (e.currentTarget.style.display = 'none')}
+                />
+              </div>
+              {images.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 shadow hover:bg-farmlink-green/20"
+                    onClick={() => setCurrentImageIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                    aria-label="Previous image"
+                    type="button"
+                  >
+                    <span className="text-2xl">&#8592;</span>
+                  </button>
+                  <button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 shadow hover:bg-farmlink-green/20"
+                    onClick={() => setCurrentImageIdx((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                    aria-label="Next image"
+                    type="button"
+                  >
+                    <span className="text-2xl">&#8594;</span>
+                  </button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                    {images.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`inline-block w-2 h-2 rounded-full ${idx === currentImageIdx ? 'bg-farmlink-green' : 'bg-farmlink-lightgreen/40'}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
-  )}
-</div>
 
         <div className="flex justify-between items-center text-sm text-farmlink-darkgreen/60 mb-4">
           <div>{likes} likes • {commentsList.length} comments</div>

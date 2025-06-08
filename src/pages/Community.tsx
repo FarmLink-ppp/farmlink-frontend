@@ -101,12 +101,11 @@ const Community = () => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
-      const imageUrl = URL.createObjectURL(e.target.files[0]);
-      setImagePreview(imageUrl);
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...filesArray]);
       toast({
-        title: "Image attached",
-        description: "Your image has been attached to the post.",
+        title: filesArray.length > 1 ? "Images attached" : "Image attached",
+        description: `You have attached ${filesArray.length} image${filesArray.length > 1 ? 's' : ''} to the post.`,
         duration: 2000,
       });
     }
@@ -200,16 +199,43 @@ const Community = () => {
                     </div>
                   )}
                   
+                  {selectedFiles.length > 0 && (
+                    <div className="mb-4 flex flex-wrap gap-4">
+                      {selectedFiles.map((file, idx) => (
+                        <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-farmlink-lightgreen/30 bg-farmlink-offwhite">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-7 w-7 rounded-full"
+                            onClick={() => {
+                              const newFiles = [...selectedFiles];
+                              newFiles.splice(idx, 1);
+                              setSelectedFiles(newFiles);
+                            }}
+                            type="button"
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-3">
                       <label htmlFor="image-upload" className="cursor-pointer flex items-center gap-2 border-farmlink-lightgreen/30 hover:bg-farmlink-green/5">
                         <ImageIcon className="h-4 w-4" />
                         Photo
-                        <input 
-                          id="image-upload" 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
+                        <input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
                           multiple
                           onChange={handleImageUpload}
                           tabIndex={-1}
