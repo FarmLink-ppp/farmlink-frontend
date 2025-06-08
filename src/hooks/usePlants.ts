@@ -1,7 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { ApiErrorHandler } from "@/lib/error-handler";
 import { CreatePlantDto, PlantResponse, UpdatePlantDto } from "@/types";
-import { set } from "date-fns";
 import { useEffect, useState } from "react";
 
 interface UsePlantReturn {

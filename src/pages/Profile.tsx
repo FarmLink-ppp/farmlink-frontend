@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import PostCard from "@/components/community/PostCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -131,21 +131,25 @@ const Profile = () => {
 
               <div className="flex-1">
                 <h1 className="text-4xl font-bold text-farmlink-darkgreen mb-2">
-                  {profile?.full_name}
+                  {isProfileLoading ? "Loading..." : profile?.full_name}
                 </h1>
                 <p className="text-farmlink-darkgreen/70 text-lg mb-4">
-                  {profile?.bio}
+                  {isProfileLoading ? "Loading..." : profile?.bio}
                 </p>
 
                 <div className="flex items-center space-x-6 text-farmlink-darkgreen/60 mb-6">
                   <div className="flex items-center">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{profile?.location}</span>
+                    <span className="text-sm">
+                      {isProfileLoading ? "Loading..." : profile?.location}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
                     <span className="text-sm">
-                      {profile?.created_at
+                      {isProfileLoading
+                        ? "Loading..."
+                        : profile?.created_at
                         ? new Date(profile.created_at).toLocaleDateString(
                             undefined,
                             {
@@ -162,7 +166,7 @@ const Profile = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
-                      {"stats"}
+                      {userPosts.length || "N/A"}
                     </p>
                     <p className="text-sm text-farmlink-darkgreen/60">Posts</p>
                   </div>
@@ -295,10 +299,10 @@ const Profile = () => {
                   <CardContent className="p-12 text-center">
                     <Bookmark className="h-16 w-16 text-farmlink-lightgreen mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">
-                      No Share posts
+                      No Shared posts
                     </h3>
                     <p className="text-farmlink-darkgreen/60 mb-6">
-                      Share interesting posts to read them later!
+                      Share interesting posts to view them later!
                     </p>
                     <Button
                       variant="outline"
