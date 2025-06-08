@@ -22,8 +22,13 @@ import {
   PlantResponse,
   UpdateLandDivisionDto,
   UpdatePlantDto,
+  WeatherData,
+  WeatherResponse,
+  User,
   FollowResponse,
   Follow,
+  DailyTip,
+  TaskResponse,
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -308,6 +313,46 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  async getPlantCount(): Promise<number> {
+    return this.request<number>("/plants/count");
+  }
+
+  async getCommunityPostCount(): Promise<number> {
+    return this.request<number>("/posts/count");
+  }
+
+  async getDailyTip(): Promise<DailyTip> {
+    return this.request<DailyTip>("/daily-tip");
+  }
+
+  async getWeather(fallbackLocation?: string): Promise<WeatherData> {
+    const user = await this.getProfileInfo();
+    if (!user.location) {
+      user.location = "Tunis";
+    }
+    const response = await this.request<WeatherResponse>(
+      `/weather?q=${encodeURIComponent(user.location)}`
+    );
+    return {
+      location: user.location,
+      temperature: response.main.temp,
+      condition: response.weather[0].main,
+      humidity: response.main.humidity,
+      windSpeed: response.wind.speed,
+      high: response.main.temp_max,
+      low: response.main.temp_min,
+    };
+  }
+
+  async getProfileInfo(): Promise<User> {
+    return this.request<User>("/users/profile");
+  }
+
+  async getUpcomingTasks(): Promise<TaskResponse> {
+    return this.request<TaskResponse>("/tasks/upcoming");
+  }
+
   // WORKERS
   async getWorkersByEmployer(): Promise<Worker[]> {
     return this.request<Worker[]>("/worker/employer");
