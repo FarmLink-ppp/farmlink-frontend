@@ -22,9 +22,16 @@ import {
   PlantResponse,
   UpdateLandDivisionDto,
   UpdatePlantDto,
+  WeatherData,
+  Task,
+  WeatherResponse,
+  User
 } from "@/types";
 
 const API_BASE_URL = "http://localhost:3000/api";
+
+
+
 
 class ApiClient {
   private getTokenFromCookie(): string | null {
@@ -306,6 +313,70 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  async getPlantCount(): Promise<number> {
+    return this.request<number>("/plants/count");
+  }
+
+  async getHealthyPlantCount(): Promise<number> {
+    return this.request<number>("/plant-health/diagnosis/healthy/count");
+  }
+
+  async getActiveTaskCount(): Promise<number> {
+    const [pending, inProgress] = await Promise.all([
+      this.request<any[]>("/tasks/by-status?status=PENDING"),
+      this.request<any[]>("/tasks/by-status?status=IN_PROGRESS"),
+    ]);
+    return pending.length + inProgress.length;
+  }
+
+  async getCommunityPostCount(): Promise<number> {
+    return this.request<number>("/posts/count");
+  }
+
+  // Add to your existing ApiClient class in lib/api.ts
+  async getDailyTip(): Promise<{
+    id: number;
+    title: string;
+    content: string;
+    category: string;
+    created_at: string;
+  } | null> {
+    return this.request("/daily-tip");
+  }
+
+
+
+  async getWeather(): Promise<WeatherData> {
+    const farm = await this.getFarm();
+    // Then get weather for that location
+    const response = await this.request<WeatherResponse>(`/weather?q=${encodeURIComponent(farm.location)}`);
+    // Map the OpenWeather API response to your frontend format
+    return {
+        location: farm.location, // or response.name if you want the city name from weather API
+        temperature: response.main.temp,
+        condition: response.weather[0].main,
+        humidity: response.main.humidity,
+        windSpeed: response.wind.speed,
+        high: response.main.temp_max,
+        low: response.main.temp_min
+    };
+}
+
+
+// api.ts
+async getProfile1(): Promise<User> {
+  return this.request<User>('/auth/profile');
+}
+
+    
+
+  async getUpcomingTasks(): Promise<Task[]> {
+    return this.request<Task[]>("/tasks/upcoming");  // Single API call
+  }
+
+  
+
 }
 
 export const apiClient = new ApiClient();
