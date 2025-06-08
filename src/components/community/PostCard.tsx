@@ -24,16 +24,18 @@ export interface PostCardProps {
   date: string;
   content: string;
   image?: string;
+  images?: string[]; // Add this prop for multiple images
   likes: number;
   comments: number;
   id: number; // Ensure id is required and passed from parent
-} 
+}
 
 const PostCard: React.FC<PostCardProps> = ({
   author,
   date,
   content,
   image,
+  images,
   likes: initialLikes,
   comments: initialComments,
   id,
@@ -127,7 +129,7 @@ const PostCard: React.FC<PostCardProps> = ({
       }));
       setCommentsList(mapped);
     } catch (error: any) {
-      console.error("F55ailed to post comment:", error); // Log the error in the console
+      console.error("Failed to post comment:", error); // Log the error in the console
       console.log("[POST COMMENT ERROR] -- See above for details");
       toast({
         title: "Failed to post comment",
@@ -159,7 +161,7 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   return (
-    <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+    <Card className="h-30000 border border-farmlink-lightgreen/30 bg-white shadow-md ">
       <CardContent className="p-6">
         <div className="flex items-center mb-4">
           <Avatar className="h-12 w-12 mr-4 border-2 border-farmlink-lightgreen/20">
@@ -173,60 +175,85 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
 
-        <div>
-          <p className="mb-4 text-farmlink-darkgreen leading-relaxed">{content}</p>
-          {image && (
-            <div className="mb-4 rounded-xl overflow-hidden shadow-md">
-              <img src={image} alt="Post" className="w-full h-auto" />
-            </div>
-          )}
+<div>
+  <p className="mb-4 text-farmlink-darkgreen leading-relaxed">{content}</p>
+  {/* Fallback to single image prop for backward compatibility */}
+  {!images && image && (
+    <div className="mb-4 rounded-xl overflow-hidden shadow-md">
+      <img
+        crossOrigin="anonymous"
+        src={image}
+        alt="Post"
+        className="w-full h-auto"
+      />
+    </div>
+  )}
+  {/* Display all images if available */}
+  {images && images.length > 0 && (
+    <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {images.map((img, idx) => (
+        <div
+          key={idx}
+          className="bg-farmlink-offwhite rounded-lg overflow-hidden border border-farmlink-lightgreen/30"
+          style={{ minHeight: 120 }}
+        >
+          <img
+            src={img}
+            alt={`Post image ${idx + 1}`}
+            className="w-full h-40 object-cover"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
         </div>
+      ))}
+    </div>
+  )}
+</div>
 
         <div className="flex justify-between items-center text-sm text-farmlink-darkgreen/60 mb-4">
           <div>{likes} likes • {commentsList.length} comments</div>
         </div>
 
         <div className="border-t border-farmlink-lightgreen/20 pt-4 flex justify-between">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleLike} 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
             className={`transition-all duration-200 ${
-              liked 
-                ? "text-red-500 bg-red-50 hover:bg-red-100" 
+              liked
+                ? "text-red-500 bg-red-50 hover:bg-red-100"
                 : "text-farmlink-darkgreen hover:bg-farmlink-green/5"
             }`}
           >
             <Heart className={`mr-2 h-4 w-4 ${liked ? "fill-red-500" : ""}`} />
             {liked ? "Liked" : "Like"}
           </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
+
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowComments(!showComments)}
             className="text-farmlink-darkgreen hover:bg-farmlink-green/5 transition-all duration-200"
           >
             <MessageSquare className="mr-2 h-4 w-4" />
             Comment
           </Button>
-          
-          <Button 
-            variant="ghost" 
+
+          <Button
+            variant="ghost"
             size="sm"
             onClick={handleSave}
             className={`transition-all duration-200 ${
-              saved 
-                ? "text-farmlink-green bg-farmlink-green/10 hover:bg-farmlink-green/20" 
+              saved
+                ? "text-farmlink-green bg-farmlink-green/10 hover:bg-farmlink-green/20"
                 : "text-farmlink-darkgreen hover:bg-farmlink-green/5"
             }`}
           >
             <Bookmark className={`mr-2 h-4 w-4 ${saved ? "fill-farmlink-green" : ""}`} />
             {saved ? "Saved" : "Save"}
           </Button>
-          
-          <Button 
-            variant="ghost" 
+
+          <Button
+            variant="ghost"
             size="sm"
             onClick={handleShare}
             className="text-farmlink-darkgreen hover:bg-farmlink-green/5 transition-all duration-200"
@@ -239,7 +266,7 @@ const PostCard: React.FC<PostCardProps> = ({
         {showComments && (
           <div className="mt-6 space-y-4 border-t border-farmlink-lightgreen/20 pt-4">
             <CommentForm onSubmit={handleSubmitComment} />
-            
+
             {commentsList.length > 0 && (
               <div className="space-y-3 mt-4">
                 {commentsList.map((comment) => (
@@ -260,10 +287,10 @@ const PostCard: React.FC<PostCardProps> = ({
                 ))}
               </div>
             )}
-            
+
             {initialComments > 0 && commentsList.length === 0 && (
               <div className="text-center text-sm text-farmlink-darkgreen/60 py-4">
-                Be the f"irst to comment on this post!
+                Be the first to comment on this post!
               </div>
             )}
           </div>

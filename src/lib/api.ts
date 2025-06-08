@@ -160,13 +160,26 @@ class ApiClient {
   async createPost(postData: {
     title?: string;
     content?: string;
-    image_urls?: string[];
+    image_urls?: File[]; // Accept File objects
     category?: string;
     user_id?: number;
   }): Promise<PostResponse> {
+    const formData = new FormData();
+    if (postData.title) formData.append("title", postData.title);
+    if (postData.content) formData.append("content", postData.content);
+    if (postData.category) formData.append("category", postData.category);
+    if (postData.image_urls && postData.image_urls.length > 0) {
+      postData.image_urls.forEach((file) => {
+        formData.append("image_urls", file); // field name must match backend
+      });
+    }
+    // Don't set Content-Type; browser will set it with boundary
     return this.request<PostResponse>("/posts", {
       method: "POST",
-      body: JSON.stringify(postData),
+      body: formData,
+      headers: {
+        ...(this.getTokenFromCookie() && { Authorization: `Bearer ${this.getTokenFromCookie()}` }),
+      },
     });
   }
 

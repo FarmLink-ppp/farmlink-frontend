@@ -29,6 +29,7 @@ const Community = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { user } = useContext(AuthContext);
   const [visibleCount, setVisibleCount] = useState(5);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   console.log("user in community page", user);
   
   useEffect(() => {
@@ -44,7 +45,8 @@ const Community = () => {
           },
           date: p.created_at ? new Date(p.created_at).toLocaleString() : "",
           content: p.content,
-          image: p.image_urls && p.image_urls.length > 0 ? p.image_urls[0] : undefined,
+          image: p.image_urls && Array.isArray(p.image_urls) && p.image_urls.length > 0 ? p.image_urls[0] : undefined,
+          images: Array.isArray(p.image_urls) ? p.image_urls : [], // Always pass images array
           likes: p.likes ? p.likes.length : 0,
           comments: p.comments ? p.comments.length : 0,
         }));
@@ -58,12 +60,11 @@ const Community = () => {
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPost.trim() && !imagePreview) return;
+    if (!newPost.trim() && selectedFiles.length === 0) return;
     try {
-      // Call backend API to create post
       const created = await apiClient.createPost({
         content: newPost,
-        image_urls: imagePreview ? [imagePreview] : [],
+        image_urls: selectedFiles,
         category: "DISCUSSIONS",
       });
       setPosts([
@@ -80,6 +81,7 @@ const Community = () => {
       ]);
       setNewPost("");
       setImagePreview(null);
+      setSelectedFiles([]);
       toast({
         title: "Post created",
         description: "Your post has been published to the community.",
@@ -98,13 +100,10 @@ const Community = () => {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // In a real app, this would upload to a server
-      // For now, we'll just create a local URL
-      const imageUrl = URL.createObjectURL(file);
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+      const imageUrl = URL.createObjectURL(e.target.files[0]);
       setImagePreview(imageUrl);
-      
       toast({
         title: "Image attached",
         description: "Your image has been attached to the post.",
@@ -190,7 +189,10 @@ const Community = () => {
                         variant="destructive" 
                         size="icon" 
                         className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                        onClick={() => setImagePreview(null)}
+                        onClick={() => {
+                          setImagePreview(null);
+                          setSelectedFiles([]);
+                        }}
                         type="button"
                       >
                         ✕
@@ -200,17 +202,17 @@ const Community = () => {
                   
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-3">
-                      <label htmlFor="image-upload" className="cursor-pointer">
-                        <Button variant="outline" size="sm" type="button" className="flex items-center gap-2 border-farmlink-lightgreen/30 hover:bg-farmlink-green/5">
-                          <ImageIcon className="h-4 w-4" />
-                          Photo
-                        </Button>
+                      <label htmlFor="image-upload" className="cursor-pointer flex items-center gap-2 border-farmlink-lightgreen/30 hover:bg-farmlink-green/5">
+                        <ImageIcon className="h-4 w-4" />
+                        Photo
                         <input 
                           id="image-upload" 
                           type="file" 
                           accept="image/*" 
                           className="hidden" 
+                          multiple
                           onChange={handleImageUpload}
+                          tabIndex={-1}
                         />
                       </label>
                       <Button variant="outline" size="sm" type="button" className="border-farmlink-lightgreen/30 hover:bg-farmlink-green/5">
@@ -254,7 +256,8 @@ const Community = () => {
                     author={post.author}
                     date={post.date}
                     content={post.content}
-                    image={post.image}
+                    image={Array.isArray((post as any).image_urls) && (post as any).image_urls.length > 0 ? (post as any).image_urls[0] : post.image}
+                    images={Array.isArray((post as any).image_urls) ? (post as any).image_urls : undefined}
                     likes={post.likes}
                     comments={post.comments}
                   />
