@@ -7,7 +7,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  account_type: AccountType;
+  account_type?: AccountType;
   full_name: string;
   profile_image?: string;
   bio?: string;

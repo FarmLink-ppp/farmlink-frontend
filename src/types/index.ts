@@ -28,13 +28,28 @@ export interface Task {
   id: number;
   title: string;
   description: string;
-  status: string;
-  priority: string;
+  status: TaskStatus;
+  priority: TaskPriority;
   start_date: string;
   due_date: string;
-  land_division?: {
-    name: string;
-  };
+  land_division_id: number;
+}
+
+export enum TaskStatus {
+  PENDING = "PENDING",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum TaskPriority {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+}
+export interface TaskResponse {
+  tasks: Task[];
+  totalCount: number;
 }
 
 export interface DailyTip {
@@ -46,16 +61,8 @@ export interface DailyTip {
 }
 
 export interface WeatherResponse {
-  coord: {
-    lon: number;
-    lat: number;
-  };
-  weather: Array<{
-    id: number;
-    main: string;
-    description: string;
-    icon: string;
-  }>;
+  coord: Coordinates;
+  weather: Weather[];
   base: string;
   main: {
     temp: number;
@@ -64,19 +71,20 @@ export interface WeatherResponse {
     temp_max: number;
     pressure: number;
     humidity: number;
+    sea_level: number;
+    grnd_level: number;
   };
   visibility: number;
   wind: {
     speed: number;
     deg: number;
+    gust: number;
   };
   clouds: {
     all: number;
   };
   dt: number;
   sys: {
-    type: number;
-    id: number;
     country: string;
     sunrise: number;
     sunset: number;
@@ -85,4 +93,16 @@ export interface WeatherResponse {
   id: number;
   name: string;
   cod: number;
+}
+
+interface Coordinates {
+  lon: number;
+  lat: number;
+}
+
+interface Weather {
+  id: number;
+  main: string;
+  description: string;
+  icon: string;
 }
