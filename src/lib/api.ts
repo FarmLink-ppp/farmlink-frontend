@@ -23,8 +23,16 @@ import {
   PlantResponse,
   UpdateLandDivisionDto,
   UpdatePlantDto,
+  WeatherData,
+  WeatherResponse,
+  User,
   FollowResponse,
   Follow,
+  DailyTip,
+  TaskResponse,
+  UpdateProfileInformationDto,
+  UpdatePasswordDto,
+  UpdateAccountType,
 } from "@/types";
 import type { AssignTaskDto, CreateTaskDto, Task, TaskAssignment, UpdateTaskStatusDto } from "@/types/task";
 const API_BASE_URL = "http://localhost:3000/api";
@@ -309,6 +317,46 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  async getPlantCount(): Promise<number> {
+    return this.request<number>("/plants/count");
+  }
+
+  async getCommunityPostCount(): Promise<number> {
+    return this.request<number>("/posts/count");
+  }
+
+  async getDailyTip(): Promise<DailyTip> {
+    return this.request<DailyTip>("/daily-tip");
+  }
+
+  async getWeather(fallbackLocation?: string): Promise<WeatherData> {
+    const user = await this.getProfileInfo();
+    if (!user.location) {
+      user.location = fallbackLocation || "Tunis";
+    }
+    const response = await this.request<WeatherResponse>(
+      `/weather?q=${encodeURIComponent(user.location)}`
+    );
+    return {
+      location: user.location,
+      temperature: response.main.temp,
+      condition: response.weather[0].main,
+      humidity: response.main.humidity,
+      windSpeed: response.wind.speed,
+      high: response.main.temp_max,
+      low: response.main.temp_min,
+    };
+  }
+
+  async getProfileInfo(): Promise<User> {
+    return this.request<User>("/users/profile");
+  }
+
+  async getUpcomingTasks(): Promise<TaskResponse> {
+    return this.request<TaskResponse>("/tasks/upcoming");
+  }
+
   // WORKERS
   async getWorkersByEmployer(): Promise<Worker[]> {
     return this.request<Worker[]>("/worker/employer");
@@ -438,6 +486,77 @@ async updateTaskStatus(
     method: "PATCH",
     body: JSON.stringify(data),
   });
+
+  async updateProfileInformation(
+    updateProfileInformation: UpdateProfileInformationDto,
+    file: File | null = null
+  ): Promise<User> {
+    const formData = new FormData();
+    if (file) {
+      formData.append("profileImage", file);
+    }
+
+    if (updateProfileInformation.username !== undefined)
+      formData.append("username", updateProfileInformation.username);
+    if (updateProfileInformation.bio !== undefined)
+      formData.append("bio", updateProfileInformation.bio);
+    if (updateProfileInformation.location !== undefined)
+      formData.append("location", updateProfileInformation.location);
+    if (updateProfileInformation.email !== undefined)
+      formData.append("email", updateProfileInformation.email);
+    if (updateProfileInformation.fullName !== undefined)
+      formData.append("fullName", updateProfileInformation.fullName);
+    const url = `${API_BASE_URL}/users/profile`;
+    const config: RequestInit = {
+      method: "PATCH",
+      headers: this.getAuthHeadersForFormData(),
+      credentials: "include",
+      body: formData,
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const errorData: ApiError = await response.json().catch(() => ({
+          message: `HTTP error! status: ${response.status}`,
+          statusCode: response.status,
+        }));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  }
+
+  async updatePassword(
+    updatePasswordDto: UpdatePasswordDto
+  ): Promise<MessageResponse> {
+    return this.request<MessageResponse>("/users/password", {
+      method: "PATCH",
+      body: JSON.stringify(updatePasswordDto),
+    });
+  }
+
+  async updateAccountType(updateAccountType: UpdateAccountType): Promise<User> {
+    return this.request<User>("/users/account", {
+      method: "PATCH",
+      body: JSON.stringify(updateAccountType),
+    });
+  }
+
+  async deleteAccount(): Promise<MessageResponse> {
+    return this.request<MessageResponse>("/users/account", {
+      method: "DELETE",
+    });
+  }
 }
 
 }
