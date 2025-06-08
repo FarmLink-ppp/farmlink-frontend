@@ -147,6 +147,17 @@ class ApiClient {
   async getProfile(): Promise<ProfileResponse> {
     return this.request<ProfileResponse>("/auth/profile");
   }
+  async getprofileall(): Promise<any> {
+    const response = await this.getProfile();
+    const userid= response.id;
+    const url = `${API_BASE_URL}/users/${userid}`;
+  const config: RequestInit = {
+    method: "GET",
+  };
+
+  const response1 = await fetch(url, config);
+
+  }
 
   async logout(): Promise<MessageResponse> {
     return this.request<MessageResponse>("/auth/logout", {

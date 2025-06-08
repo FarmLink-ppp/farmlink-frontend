@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, Calendar, MapPin, Leaf, MessageSquare, Bookmark, Sparkles } from "lucide-react";
+import { useFollow } from "@/hooks/useFollow";
+import { useProfile } from "@/hooks/useProfile";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
-
+  const { followers, following, isLoading, error } = useFollow();
+  const { profile, isLoading: isProfileLoading, error: profileError } = useProfile();
   // Mock user data
   const userData = {
     name: "John Doe",
@@ -86,17 +89,17 @@ const Profile = () => {
               </div>
               
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-farmlink-darkgreen mb-2">{userData.name}</h1>
-                <p className="text-farmlink-darkgreen/70 text-lg mb-4">{userData.bio}</p>
+                <h1 className="text-4xl font-bold text-farmlink-darkgreen mb-2">{profile.username}</h1>
+                <p className="text-farmlink-darkgreen/70 text-lg mb-4">{profile.bio}</p>
                 
                 <div className="flex items-center space-x-6 text-farmlink-darkgreen/60 mb-6">
                   <div className="flex items-center">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{userData.location}</span>
+                    <span className="text-sm">{profile.location}</span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
-                    <span className="text-sm">Joined {userData.joinDate}</span>
+                    <span className="text-sm">Joined {profile.joinDate}</span>
                   </div>
                 </div>
                 
@@ -106,11 +109,11 @@ const Profile = () => {
                     <p className="text-sm text-farmlink-darkgreen/60">Posts</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-farmlink-darkgreen">{userData.stats.followers}</p>
+                    <p className="text-2xl font-bold text-farmlink-darkgreen">{followers.length}</p>
                     <p className="text-sm text-farmlink-darkgreen/60">Followers</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-farmlink-darkgreen">{userData.stats.following}</p>
+                    <p className="text-2xl font-bold text-farmlink-darkgreen">{following.length}</p>
                     <p className="text-sm text-farmlink-darkgreen/60">Following</p>
                   </div>
                   <div className="text-center">
