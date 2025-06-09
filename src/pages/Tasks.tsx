@@ -163,7 +163,10 @@ const Tasks = () => {
         status: newStatus,
       });
       toast.success("Task status updated successfully!");
-      await refetchTasks();
+      //  await refetchTasks();
+      // Reload the page to ensure everything is updated
+    window.location.reload();
+
     } catch (error) {
       console.error("Status update failed", error);
       toast.error("Failed to update task status. Please try again.");
