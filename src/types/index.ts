@@ -1,5 +1,6 @@
 export * from "./land";
 export * from "./auth";
+export * from "./post";
 export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
