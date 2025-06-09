@@ -1,111 +1,177 @@
-import React, { useState } from "react";
+import { useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import LandDivisionForm from "@/components/land/LandDivisionForm";
 import LandDivisionList from "@/components/land/LandDivisionList";
-import PlantForm, { CreatePlantDto } from "@/components/land/PlantForm";
+import PlantForm from "@/components/land/PlantForm";
 import PlantList from "@/components/land/PlantList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CreateLandDivisionDto,
-  LandDivision,
-  Plant,
+  CreatePlantDto,
   CultivationStatus,
+  UpdateFarmDto,
+  UpdateLandDivisionDto,
+  UpdatePlantDto,
 } from "@/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Save, Map, Sparkles, BarChart3, Leaf } from "lucide-react";
+import { CreateFarmDto } from "@/types";
+import { useFarm } from "@/hooks/useFarm";
+import { useLandDivision } from "@/hooks/useLandDivisions";
+import { usePlant } from "@/hooks/usePlants";
+import { Map, Sparkles, BarChart3, Leaf, MapPin, Calendar } from "lucide-react";
+import FarmForm from "@/components/land/FarmForm";
+import FarmSettings from "@/components/land/FarmSettings";
+import DeleteFarm from "@/components/land/DeleteFarm";
+import { toast } from "@/hooks/use-toast";
 
 const LandManagement = () => {
-  const [divisions, setDivisions] = useState<LandDivision[]>([]);
-  const [plants, setPlants] = useState<Plant[]>([]);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [savedSuccessfully, setSavedSuccessfully] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    farm,
+    isLoading: farmLoading,
+    error: farmError,
+    createFarm,
+    updateFarm,
+    deleteFarm,
+  } = useFarm();
+
+  const {
+    landDivisions,
+    isLoading: landDivisionLoading,
+    error: landDivisionError,
+    createLandDivision,
+    updateLandDivision,
+    deleteLandDivision,
+    refetchLandDivisions,
+    clearError: clearLandDivisionError,
+  } = useLandDivision();
+
+  const {
+    plants,
+    isLoading: plantLoading,
+    error: plantError,
+    createPlant,
+    deletePlant,
+    getAllPlants,
+    updatePlant,
+    clearError: clearPlantError,
+  } = usePlant();
+
+  const handleCreateFarm = async (farmData: CreateFarmDto) => {
+    await createFarm(farmData);
+    await refetchLandDivisions();
+  };
+
+  const handleUpdateFarm = async (farmData: UpdateFarmDto) => {
+    await updateFarm(farmData);
+  };
+
+  const handleDeleteFarm = async () => {
+    await deleteFarm();
+    await refetchLandDivisions();
+    await getAllPlants();
+  };
 
   const handleCreatePlant = async (data: CreatePlantDto) => {
-    setIsLoading(true);
-
-    const newPlant: Plant = {
-      id: Date.now(),
-      name: data.name,
-      description: data.description,
-      image_url: data.image_url,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    setTimeout(() => {
-      setPlants([...plants, newPlant]);
-      setIsLoading(false);
-    }, 1000);
+    await createPlant(data);
+    await getAllPlants();
   };
 
   const handleCreateDivision = async (data: CreateLandDivisionDto) => {
-    setIsLoading(true);
-
-    const selectedPlant = data.plantId
-      ? plants.find((p) => p.id === data.plantId)
-      : undefined;
-
-    const newDivision: LandDivision = {
-      id: Date.now(),
-      name: data.name,
-      area: data.area,
-      cultivation_status: data.cultivationStatus,
-      geolocation: data.geolocation,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      farm_id: 1,
-      plant_id: data.plantId,
-      plant: selectedPlant,
-    };
-
-    setTimeout(() => {
-      setDivisions([...divisions, newDivision]);
-      setIsLoading(false);
-    }, 1000);
+    await createLandDivision(data);
+    await refetchLandDivisions();
   };
 
-  const handleDeleteDivision = (id: number) => {
-    setDivisions(divisions.filter((d) => d.id !== id));
+  const handleEditLandDivision = async (
+    id: number,
+    data: UpdateLandDivisionDto
+  ) => {
+    await updateLandDivision(id, data);
+    await refetchLandDivisions();
   };
 
-  const handleDeletePlant = (id: number) => {
-    setPlants(plants.filter((p) => p.id !== id));
-    // Also update divisions that reference this plant
-    setDivisions(
-      divisions.map((d) =>
-        d.plant_id === id ? { ...d, plant_id: undefined, plant: undefined } : d
-      )
-    );
+  const handleDeleteDivision = async (id: number) => {
+    await deleteLandDivision(id);
   };
 
-  const handleSave = () => {
-    localStorage.setItem("landDivisions", JSON.stringify(divisions));
-    localStorage.setItem("plants", JSON.stringify(plants));
-    setSavedSuccessfully(true);
-    setTimeout(() => {
-      setShowSaveDialog(false);
-      setSavedSuccessfully(false);
-    }, 1500);
+  const handleEditPlant = async (id: number, data: UpdatePlantDto) => {
+    await updatePlant(id, data);
+    await getAllPlants();
   };
 
-  // Calculate statistics
-  const totalArea = divisions.reduce((sum, div) => sum + div.area, 0);
-  const statusCounts = divisions.reduce((acc, div) => {
+  const handleDeletePlant = async (id: number) => {
+    await deletePlant(id);
+    await getAllPlants();
+    await refetchLandDivisions();
+  };
+
+  const clearError = () => {
+    clearLandDivisionError();
+    clearPlantError();
+  };
+
+  const totalArea = landDivisions.reduce((sum, div) => sum + div.area, 0);
+  const statusCounts = landDivisions.reduce((acc, div) => {
     acc[div.cultivation_status] = (acc[div.cultivation_status] || 0) + 1;
     return acc;
   }, {} as Record<CultivationStatus, number>);
 
+  const error = farmError || landDivisionError || plantError;
+
+  useEffect(() => {
+    if (error) {
+      if (error === "Farm not found") return;
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive",
+      });
+      clearError();
+    }
+  }, [error, clearError]);
+
+  if (farmLoading) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-8 h-8 border-4 border-farmlink-green/30 border-t-farmlink-green rounded-full animate-spin mx-auto" />
+            <p className="text-farmlink-darkgreen/70">
+              Loading your farm information...
+            </p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!farm) {
+    return (
+      <FarmForm
+        onSubmit={handleCreateFarm}
+        isLoading={farmLoading}
+        error={farmError}
+      />
+    );
+  }
+
   return (
     <MainLayout>
       <div className="space-y-8 animate-fade-in">
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <p className="text-red-800 text-sm">{error}</p>
+              <button
+                onClick={clearError}
+                className="text-red-600 hover:text-red-800"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header Section */}
         <div className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 rounded-2xl p-8 border border-farmlink-lightgreen/20">
           <div className="flex items-center justify-between">
@@ -115,20 +181,45 @@ const LandManagement = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-farmlink-darkgreen">
-                  Land Management
+                  {farm.name}
                 </h1>
                 <p className="text-farmlink-darkgreen/70 text-lg">
-                  Manage your plants and land divisions
+                  Land Management Dashboard
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save Data
-            </Button>
+            <div className="flex items-center space-x-3">
+              <FarmSettings
+                farm={farm}
+                onUpdateFarm={handleUpdateFarm}
+                isLoading={farmLoading}
+              />
+              <DeleteFarm
+                farm={farm}
+                onDeleteFarm={handleDeleteFarm}
+                isLoading={farmLoading}
+              />
+            </div>
+          </div>
+
+          {/* Farm Info Bar */}
+          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-farmlink-darkgreen/80">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4" />
+              <span>{farm.location}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>
+                {farm.total_area} {farm.area_unit.toLowerCase()}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4" />
+              <span>
+                Created {new Date(farm.created_at).toLocaleDateString()}
+              </span>
+            </div>
           </div>
 
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-farmlink-lightgreen/20 text-farmlink-darkgreen text-sm font-medium mt-4">
@@ -143,7 +234,7 @@ const LandManagement = () => {
               value="divisions"
               className="data-[state=active]:bg-farmlink-green/10"
             >
-              Land Divisions ({divisions.length})
+              Land Divisions ({landDivisions.length})
             </TabsTrigger>
             <TabsTrigger
               value="plants"
@@ -155,7 +246,7 @@ const LandManagement = () => {
 
           <TabsContent value="divisions" className="mt-6">
             {/* Statistics Cards */}
-            {divisions.length > 0 && (
+            {landDivisions.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-4">
@@ -163,7 +254,7 @@ const LandManagement = () => {
                       <BarChart3 className="h-5 w-5 text-farmlink-green" />
                       <div>
                         <p className="text-sm text-farmlink-darkgreen/70">
-                          Total Area
+                          Total Cultivated
                         </p>
                         <p className="text-lg font-semibold text-farmlink-darkgreen">
                           {totalArea} ha
@@ -228,7 +319,7 @@ const LandManagement = () => {
                 <LandDivisionForm
                   onSubmit={handleCreateDivision}
                   plants={plants}
-                  isLoading={isLoading}
+                  isLoading={landDivisionLoading}
                 />
               </div>
 
@@ -236,12 +327,14 @@ const LandManagement = () => {
                 <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
                   <CardHeader className="bg-gradient-to-r from-farmlink-green/5 to-farmlink-mediumgreen/5 border-b border-farmlink-lightgreen/20">
                     <CardTitle className="text-farmlink-darkgreen">
-                      Land Divisions ({divisions.length})
+                      Land Divisions ({landDivisions.length})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
                     <LandDivisionList
-                      divisions={divisions}
+                      divisions={landDivisions}
+                      plants={plants}
+                      onEdit={handleEditLandDivision}
                       onDelete={handleDeleteDivision}
                     />
                   </CardContent>
@@ -253,7 +346,10 @@ const LandManagement = () => {
           <TabsContent value="plants" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div>
-                <PlantForm onSubmit={handleCreatePlant} isLoading={isLoading} />
+                <PlantForm
+                  onSubmit={handleCreatePlant}
+                  isLoading={plantLoading}
+                />
               </div>
 
               <div className="lg:col-span-2">
@@ -265,7 +361,11 @@ const LandManagement = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <PlantList plants={plants} onDelete={handleDeletePlant} />
+                    <PlantList
+                      plants={plants}
+                      onDelete={handleDeletePlant}
+                      onEdit={handleEditPlant}
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -273,63 +373,6 @@ const LandManagement = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent className="bg-white border-farmlink-lightgreen/20">
-          <DialogHeader>
-            <DialogTitle className="text-farmlink-darkgreen">
-              {savedSuccessfully ? "Saved Successfully!" : "Save Data"}
-            </DialogTitle>
-          </DialogHeader>
-          {!savedSuccessfully ? (
-            <div className="space-y-4 pt-4">
-              <p className="text-farmlink-darkgreen/70">
-                Save your plants and land divisions? This will overwrite any
-                previously saved data.
-              </p>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowSaveDialog(false)}
-                  className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-farmlink-green/5"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-farmlink-green/10 text-farmlink-green mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-check"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                </div>
-                <p className="text-farmlink-darkgreen">
-                  Your data has been saved successfully!
-                </p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </MainLayout>
   );
 };
