@@ -117,6 +117,9 @@ const Community = () => {
         description: "Your post has been published to the community.",
         duration: 3000,
       });
+      // Reload the page to ensure everything is updated
+    window.location.reload();
+
     } catch (error: any) {
       // Log the error to the console for debugging
       console.error("Create post error:", error);
