@@ -23,6 +23,7 @@ import { apiClient } from "@/lib/api";
 import { DailyTip, TaskPriority } from "@/types";
 import { usePlant } from "@/hooks/usePlants";
 import { toast } from "@/hooks/use-toast";
+import { useLandDivision } from "@/hooks/useLandDivisions";
 
 const Index = () => {
   const [activeTaskCount, setActiveTaskCount] = useState<number | null>(null);
@@ -45,8 +46,12 @@ const Index = () => {
     error: plantsError,
     plantsCount,
   } = usePlant();
-
-  const error = plantsError || tasksError;
+  const {
+    isLoading: landDivisionsLoading,
+    error: landDivisionsError,
+    landDivisions,
+  } = useLandDivision();
+  const error = plantsError || tasksError || landDivisionsError;
 
   useEffect(() => {
     if (error === "Farm not found") return;
@@ -134,6 +139,19 @@ const Index = () => {
     }
   };
 
+  const getTaskPriority = (priority: TaskPriority) => {
+    switch (priority) {
+      case TaskPriority.HIGH:
+        return "High";
+      case TaskPriority.MEDIUM:
+        return "Medium";
+      case TaskPriority.LOW:
+        return "Low";
+      default:
+        return "Normal";
+    }
+  };
+
   console.log(dailyTip);
   console.log(profile);
 
@@ -147,8 +165,10 @@ const Index = () => {
       color: "text-farmlink-green",
     },
     {
-      title: "Healthy Plants",
-      value: "N/A",
+      title: "Total Land Divisions",
+      value: landDivisionsLoading
+        ? "Loading..."
+        : landDivisions?.length || "N/A",
       change: "+8%",
       trend: "up" as const,
       icon: CheckCircle,
@@ -292,7 +312,7 @@ const Index = () => {
                               : "bg-farmlink-lightgreen/20 text-farmlink-darkgreen"
                           }
                         >
-                          {task.priority} priority
+                          {getTaskPriority(task.priority)} priority
                         </Badge>
                       </div>
                       <p className="font-semibold text-farmlink-darkgreen group-hover:text-farmlink-green transition-colors duration-200">

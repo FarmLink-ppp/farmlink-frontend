@@ -180,10 +180,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white/95 backdrop-blur-sm border-farmlink-lightgreen/30">
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value={TaskStatus.PENDING}>Pending</SelectItem>
+                <SelectItem value={TaskStatus.IN_PROGRESS}>
+                  In Progress
+                </SelectItem>
+                <SelectItem value={TaskStatus.COMPLETED}>Completed</SelectItem>
+                <SelectItem value={TaskStatus.CANCELLED}>Cancelled</SelectItem>
               </SelectContent>
             </Select>
           </div>

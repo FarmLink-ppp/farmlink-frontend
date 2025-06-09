@@ -458,7 +458,7 @@ class ApiClient {
     return this.request<{ message: string }>(
       `/follow/requests/${requestId}/reject`,
       {
-        method: "DELETE",
+        method: "POST",
       }
     );
   }

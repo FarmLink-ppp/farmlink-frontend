@@ -4,7 +4,7 @@ import PostCard from "@/components/community/PostCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Calendar,
   MapPin,
@@ -16,13 +16,17 @@ import { apiClient } from "@/lib/api";
 import { useFollow } from "@/hooks/useFollow";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "@/hooks/use-toast";
-import { usePlant } from "@/hooks/usePlants";
 import { Link } from "react-router-dom";
+import FollowModal from "@/components/profile/FollowModal";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [sharedPosts, setSharedPosts] = useState<any[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<
+    "followers" | "following" | "requests"
+  >("followers");
   const {
     profile,
     loading: isProfileLoading,
@@ -34,13 +38,11 @@ const Profile = () => {
     following,
     isLoading: isFollowLoading,
     error: isFollowError,
+    unfollowUser,
+    acceptFollowRequest,
+    rejectFollowRequest,
+    refetchAllFollowData,
   } = useFollow();
-
-  const {
-    plantsCount,
-    error: plantsError,
-    isLoading: plantsLoading,
-  } = usePlant();
 
   const formatAvatar = (name: string) => {
     if (!name) return "?";
@@ -51,6 +53,71 @@ const Profile = () => {
     return initials;
   };
 
+  const handleFollowersClick = () => {
+    setModalType("followers");
+    setModalOpen(true);
+  };
+
+  const handleFollowingClick = () => {
+    setModalType("following");
+    setModalOpen(true);
+  };
+
+  const handleFollowRequestsClick = () => {
+    setModalType("requests");
+    setModalOpen(true);
+  };
+
+  const handleUnfollow = async (userId: number) => {
+    try {
+      await unfollowUser(userId);
+      await refetchAllFollowData();
+      toast({
+        title: "Success",
+        description: "User unfollowed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to unfollow user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAcceptRequest = async (requestId: number) => {
+    try {
+      await acceptFollowRequest(requestId);
+      await refetchAllFollowData();
+      toast({
+        title: "Success",
+        description: "Follow request accepted",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to accept follow request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectRequest = async (requestId: number) => {
+    try {
+      await rejectFollowRequest(requestId);
+      await refetchAllFollowData();
+      toast({
+        title: "Success",
+        description: "Follow request rejected",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject follow request",
+        variant: "destructive",
+      });
+    }
+  };
   useEffect(() => {
     const fetchUserPosts = async () => {
       try {
@@ -107,7 +174,7 @@ const Profile = () => {
     fetchSharedPosts();
   }, []);
 
-  const error = isProfileError || isFollowError || plantsError;
+  const error = isProfileError || isFollowError;
 
   useEffect(() => {
     if (error === "Farm not found") return;
@@ -129,6 +196,11 @@ const Profile = () => {
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-white shadow-xl">
+                  <img
+                    src={profile?.profile_image || ""}
+                    crossOrigin="anonymous"
+                    className="object-cover"
+                  />
                   <AvatarFallback className="bg-gradient-to-br from-farmlink-green to-farmlink-mediumgreen text-white text-4xl font-bold">
                     {isProfileLoading
                       ? "Loading..."
@@ -175,39 +247,57 @@ const Profile = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="text-center">
+                  <div className="text-center p-2">
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
-                      {userPosts.length || "N/A"}
+                      {userPosts.length || "0"}
                     </p>
                     <p className="text-sm text-farmlink-darkgreen/60">Posts</p>
                   </div>
-                  <div className="text-center">
+                  <div
+                    className="text-center cursor-pointer hover:bg-farmlink-green/5 rounded-lg p-2 transition-colors"
+                    onClick={handleFollowersClick}
+                  >
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
-                      {isFollowLoading
-                        ? "Loading..."
-                        : followers.length || "N/A"}
+                      {isFollowLoading ? "Loading..." : followers.length || "0"}
                     </p>
                     <p className="text-sm text-farmlink-darkgreen/60">
                       Followers
                     </p>
                   </div>
-                  <div className="text-center">
+                  <div
+                    className="text-center cursor-pointer hover:bg-farmlink-green/5 rounded-lg p-2 transition-colors"
+                    onClick={handleFollowingClick}
+                  >
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
-                      {isFollowLoading
-                        ? "Loading..."
-                        : following.length || "N/A"}
+                      {isFollowLoading ? "Loading..." : following.length || "0"}
                     </p>
                     <p className="text-sm text-farmlink-darkgreen/60">
                       Following
                     </p>
                   </div>
-                  <div className="text-center">
+                  <div
+                    className="text-center cursor-pointer hover:bg-farmlink-green/5 rounded-lg p-2 transition-colors"
+                    onClick={handleFollowRequestsClick}
+                  >
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
-                      {plantsLoading ? "Loading..." : plantsCount || "N/A"}
+                      {isFollowLoading
+                        ? "Loading..."
+                        : followRequests?.length || "0"}
                     </p>
                     <p className="text-sm text-farmlink-darkgreen/60">
-                      Plants Grown
+                      Requests
                     </p>
+                    {isFollowLoading
+                      ? "Loading..."
+                      : followRequests.length > 0 && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-xs text-white font-bold">
+                              {followRequests?.length > 9
+                                ? "9+"
+                                : followRequests?.length}
+                            </span>
+                          </div>
+                        )}
                   </div>
                 </div>
               </div>
@@ -277,9 +367,11 @@ const Profile = () => {
                     <p className="text-farmlink-darkgreen/60 mb-6">
                       Share your farming experiences with the community!
                     </p>
-                    <Button className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white">
-                      Create Your First Post
-                    </Button>
+                    <Link to="/community">
+                      <Button className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white">
+                        Create Your First Post
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               )}
@@ -327,6 +419,26 @@ const Profile = () => {
             </div>
           </TabsContent>
         </Tabs>
+        <FollowModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          type={modalType}
+          data={
+            modalType === "followers"
+              ? followers
+              : modalType === "following"
+              ? following
+              : followRequests
+          }
+          isLoading={isFollowLoading}
+          onUnfollow={modalType === "following" ? handleUnfollow : undefined}
+          onAcceptRequest={
+            modalType === "requests" ? handleAcceptRequest : undefined
+          }
+          onRejectRequest={
+            modalType === "requests" ? handleRejectRequest : undefined
+          }
+        />
       </div>
     </MainLayout>
   );

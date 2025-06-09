@@ -17,7 +17,13 @@ export interface Follow {
   status: FollowStatus;
   created_at: string;
   updated_at: string;
-  follower: {
+  follower?: {
+    id: number;
+    username: string;
+    full_name: string;
+    profile_image: string;
+  };
+  following?: {
     id: number;
     username: string;
     full_name: string;
