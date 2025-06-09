@@ -19,13 +19,9 @@ import { Task, TaskPriority, TaskStatus } from "@/types";
 
 interface TaskCalendarProps {
   tasks: Task[];
-  onStatusChange?: (taskId: number, newStatus: TaskStatus) => void;
 }
 
-const TaskCalendar: React.FC<TaskCalendarProps> = ({
-  tasks,
-  onStatusChange,
-}) => {
+const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date()
   );

@@ -50,9 +50,11 @@ const Tasks = () => {
     description: "",
     priority: TaskPriority.MEDIUM,
     startDate: new Date().toISOString(),
-    dueDate: "",
+    dueDate: new Date().toISOString(),
     landDivisionId: undefined,
   });
+
+  console.log("iso string date", newTask.dueDate);
   const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
 
   const [filterPriority, setFilterPriority] = useState<TaskPriority | "ALL">(
@@ -144,7 +146,7 @@ const Tasks = () => {
         description: "",
         priority: TaskPriority.MEDIUM,
         startDate: new Date().toISOString(),
-        dueDate: "",
+        dueDate: new Date().toISOString(),
         landDivisionId: null,
       });
 
@@ -433,13 +435,17 @@ const Tasks = () => {
                       <Input
                         id="dueDate"
                         type="date"
-                        value={newTask.dueDate}
-                        onChange={(e) =>
+                        value={newTask.dueDate.split("T")[0]}
+                        onChange={(e) => {
+                          const selectedDate = e.target.value;
+                          const isoDate = selectedDate
+                            ? `${selectedDate}T00:00:00.000Z`
+                            : new Date().toISOString();
                           setNewTask({
                             ...newTask,
-                            dueDate: new Date(e.target.value).toISOString(),
-                          })
-                        }
+                            dueDate: isoDate,
+                          });
+                        }}
                         className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
                       />
                     </div>
