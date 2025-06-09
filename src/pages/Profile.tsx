@@ -4,7 +4,7 @@ import PostCard from "@/components/community/PostCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Calendar,
   MapPin,
@@ -18,11 +18,16 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "@/hooks/use-toast";
 import { usePlant } from "@/hooks/usePlants";
 import { Link } from "react-router-dom";
+import FollowModal from "@/components/profile/FollowModal";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [sharedPosts, setSharedPosts] = useState<any[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"followers" | "following">(
+    "followers"
+  );
   const {
     profile,
     loading: isProfileLoading,
@@ -34,6 +39,8 @@ const Profile = () => {
     following,
     isLoading: isFollowLoading,
     error: isFollowError,
+    unfollowUser,
+    refetchAllFollowData,
   } = useFollow();
 
   const {
@@ -49,6 +56,33 @@ const Profile = () => {
       .map((word) => word.charAt(0).toUpperCase())
       .join("");
     return initials;
+  };
+
+  const handleFollowersClick = () => {
+    setModalType("followers");
+    setModalOpen(true);
+  };
+
+  const handleFollowingClick = () => {
+    setModalType("following");
+    setModalOpen(true);
+  };
+
+  const handleUnfollow = async (userId: number) => {
+    try {
+      await unfollowUser(userId);
+      await refetchAllFollowData();
+      toast({
+        title: "Success",
+        description: "User unfollowed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to unfollow user",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
@@ -129,6 +163,11 @@ const Profile = () => {
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-white shadow-xl">
+                  <img
+                    src={profile?.profile_image || ""}
+                    crossOrigin="anonymous"
+                    className="object-cover"
+                  />
                   <AvatarFallback className="bg-gradient-to-br from-farmlink-green to-farmlink-mediumgreen text-white text-4xl font-bold">
                     {isProfileLoading
                       ? "Loading..."
@@ -175,13 +214,16 @@ const Profile = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="text-center">
+                  <div className="text-center p-2">
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
                       {userPosts.length || "N/A"}
                     </p>
                     <p className="text-sm text-farmlink-darkgreen/60">Posts</p>
                   </div>
-                  <div className="text-center">
+                  <div
+                    className="text-center cursor-pointer hover:bg-farmlink-green/5 rounded-lg p-2 transition-colors"
+                    onClick={handleFollowersClick}
+                  >
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
                       {isFollowLoading
                         ? "Loading..."
@@ -191,7 +233,10 @@ const Profile = () => {
                       Followers
                     </p>
                   </div>
-                  <div className="text-center">
+                  <div
+                    className="text-center cursor-pointer hover:bg-farmlink-green/5 rounded-lg p-2 transition-colors"
+                    onClick={handleFollowingClick}
+                  >
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
                       {isFollowLoading
                         ? "Loading..."
@@ -201,7 +246,7 @@ const Profile = () => {
                       Following
                     </p>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center p-2">
                     <p className="text-2xl font-bold text-farmlink-darkgreen">
                       {plantsLoading ? "Loading..." : plantsCount || "N/A"}
                     </p>
@@ -327,6 +372,14 @@ const Profile = () => {
             </div>
           </TabsContent>
         </Tabs>
+        <FollowModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          type={modalType}
+          data={modalType === "followers" ? followers : following}
+          isLoading={isFollowLoading}
+          onUnfollow={modalType === "following" ? handleUnfollow : undefined}
+        />
       </div>
     </MainLayout>
   );
