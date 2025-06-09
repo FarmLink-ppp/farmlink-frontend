@@ -8,16 +8,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Users, UserCheck, X } from "lucide-react";
-import { Follow } from "@/types/follow";
+import { Users, UserCheck, X, Check, UserPlus } from "lucide-react";
+import { Follow } from "@/types";
 
 interface FollowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "followers" | "following";
+  type: "followers" | "following" | "requests";
   data: Follow[];
   isLoading: boolean;
   onUnfollow?: (userId: number) => Promise<void>;
+  onAcceptRequest?: (requestId: number) => Promise<void>;
+  onRejectRequest?: (requestId: number) => Promise<void>;
 }
 
 const FollowModal: React.FC<FollowModalProps> = ({
@@ -27,6 +29,8 @@ const FollowModal: React.FC<FollowModalProps> = ({
   data,
   isLoading,
   onUnfollow,
+  onAcceptRequest,
+  onRejectRequest,
 }) => {
   const formatAvatar = (name: string) => {
     if (!name) return "?";
@@ -43,21 +47,62 @@ const FollowModal: React.FC<FollowModalProps> = ({
     }
   };
 
-  const title = type === "followers" ? "Followers" : "Following";
-  const emptyMessage =
-    type === "followers" ? "No followers yet" : "Not following anyone yet";
-  const emptyDescription =
-    type === "followers"
-      ? "When others follow you, they'll appear here"
-      : "Start following others to see them here";
+  const handleAcceptRequest = async (requestId: number) => {
+    if (onAcceptRequest) {
+      await onAcceptRequest(requestId);
+    }
+  };
+
+  const handleRejectRequest = async (requestId: number) => {
+    if (onRejectRequest) {
+      await onRejectRequest(requestId);
+    }
+  };
+
+  const getModalConfig = () => {
+    switch (type) {
+      case "followers":
+        return {
+          title: "Followers",
+          emptyMessage: "No followers yet",
+          emptyDescription: "When others follow you, they'll appear here",
+          icon: Users,
+        };
+      case "following":
+        return {
+          title: "Following",
+          emptyMessage: "Not following anyone yet",
+          emptyDescription: "Start following others to see them here",
+          icon: Users,
+        };
+      case "requests":
+        return {
+          title: "Follow Requests",
+          emptyMessage: "No pending requests",
+          emptyDescription:
+            "Follow requests will appear here when others want to follow you",
+          icon: UserPlus,
+        };
+      default:
+        return {
+          title: "Users",
+          emptyMessage: "No users",
+          emptyDescription: "",
+          icon: Users,
+        };
+    }
+  };
+
+  const config = getModalConfig();
+  const IconComponent = config.icon;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[600px] p-0">
         <DialogHeader className="p-6 pb-4 border-b border-farmlink-lightgreen/20">
           <DialogTitle className="text-xl font-bold text-farmlink-darkgreen flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            {title} ({data.length})
+            <IconComponent className="h-5 w-5" />
+            {config.title} ({data.length})
           </DialogTitle>
         </DialogHeader>
 
@@ -69,39 +114,49 @@ const FollowModal: React.FC<FollowModalProps> = ({
             </div>
           ) : data.length === 0 ? (
             <div className="p-8 text-center">
-              <Users className="h-12 w-12 text-farmlink-lightgreen mx-auto mb-4" />
+              <IconComponent className="h-12 w-12 text-farmlink-lightgreen mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-farmlink-darkgreen mb-2">
-                {emptyMessage}
+                {config.emptyMessage}
               </h3>
               <p className="text-farmlink-darkgreen/60 text-sm">
-                {emptyDescription}
+                {config.emptyDescription}
               </p>
             </div>
           ) : (
             <div className="p-4 space-y-3">
               {data.map((follow) => {
                 const user =
-                  type === "followers" ? follow?.follower : follow?.following;
+                  type === "followers"
+                    ? follow?.follower
+                    : type === "following"
+                    ? follow?.following
+                    : follow?.follower; // For requests, we want to show who's requesting to follow
 
                 const displayName =
                   user?.full_name ||
                   `User ${
                     type === "followers"
                       ? follow.follower_id
-                      : follow.followed_id
+                      : type === "following"
+                      ? follow.followed_id
+                      : follow.follower_id
                   }`;
                 const displayUsername =
                   user?.username ||
                   `user_${
                     type === "followers"
                       ? follow.follower_id
-                      : follow.followed_id
+                      : type === "following"
+                      ? follow.followed_id
+                      : follow.follower_id
                   }`;
                 const profileImage = user?.profile_image;
                 const userId =
                   type === "followers"
                     ? follow.follower_id
-                    : follow.followed_id;
+                    : type === "following"
+                    ? follow.followed_id
+                    : follow.follower_id;
 
                 return (
                   <div
@@ -131,17 +186,41 @@ const FollowModal: React.FC<FollowModalProps> = ({
                       </div>
                     </div>
 
-                    {type === "following" && onUnfollow && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUnfollow(userId)}
-                        className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
-                      >
-                        <UserCheck className="h-4 w-4 mr-1" />
-                        Following
-                      </Button>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {type === "following" && onUnfollow && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUnfollow(userId)}
+                          className="border-farmlink-lightgreen/30 text-farmlink-darkgreen hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
+                        >
+                          <UserCheck className="h-4 w-4 mr-1" />
+                          Following
+                        </Button>
+                      )}
+
+                      {type === "requests" &&
+                        onAcceptRequest &&
+                        onRejectRequest && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAcceptRequest(follow.id)}
+                              className="bg-farmlink-green hover:bg-farmlink-mediumgreen text-white px-3"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRejectRequest(follow.id)}
+                              className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 px-3"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                    </div>
                   </div>
                 );
               })}
