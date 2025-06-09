@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import TaskCard from "@/components/tasks/TaskCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,100 +16,166 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarDays, Filter, Plus, CheckCircle, Clock, AlertTriangle, Target, Zap } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CalendarDays,
+  Filter,
+  Plus,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Target,
+  Zap,
+} from "lucide-react";
 import TaskCalendar from "@/components/tasks/TaskCalendar";
-import { useTasks, useCreateTask, useUpdateTaskStatus } from "@/hooks/useTasks";
-import { useWorkers } from "@/hooks/useWorkers";
-
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  assignee: { name: string };
-  dueDate: string;
-  priority: "low" | "medium" | "high";
-  status: "pending" | "in-progress" | "completed";
-}
+import { CreateTaskDto, TaskPriority, TaskStatus } from "@/types";
+import { apiClient } from "@/lib/api";
+import { FarmerWorker } from "@/pages/Workers";
+import { toast } from "sonner";
+import { useTasks } from "@/hooks/useTasks";
 
 const Tasks = () => {
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("ALL");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newTask, setNewTask] = useState({
+  const [workers, setWorkers] = useState<FarmerWorker[]>([]);
+  const [workersLoading, setWorkersLoading] = useState(true);
+  const [newTask, setNewTask] = useState<CreateTaskDto>({
     title: "",
     description: "",
+    priority: TaskPriority.MEDIUM,
+    startDate: new Date().toISOString(),
     dueDate: "",
-    assignee: "",
-    priority: "",
-    status: "pending",
+    landDivisionId: undefined,
   });
-  const [filterPriority, setFilterPriority] = useState("all");
+  const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
 
-  // Use React Query hooks
-  const { data: tasks = [], isLoading, error } = useTasks();
-  const createTaskMutation = useCreateTask();
-  const updateTaskStatusMutation = useUpdateTaskStatus();
-  
-  // Get workers for assignment
-  const { workers: availableWorkers } = useWorkers();
+  const [filterPriority, setFilterPriority] = useState<TaskPriority | "ALL">(
+    "ALL"
+  );
 
-  // Function to filter tasks based on the active tab and priority filter
+  const {
+    tasks,
+    isLoading,
+    error,
+    createTask,
+    assignWorkerToTask,
+    updateTaskStatus,
+    refetchTasks,
+  } = useTasks();
+
+  useEffect(() => {
+    apiClient
+      .getWorkersByEmployer()
+      .then((data) => {
+        const mapped: FarmerWorker[] = data.map((w: any) => ({
+          id: w.id, // ✅ Ensure the original object has an `id`
+          name: w.name,
+          contact: w.contact,
+          employment_status: w.employment_status,
+          created_at: w.created_at,
+          updated_at: w.updated_at,
+          employerId: w.employerId,
+          email: `${w.name.replace(/\s+/g, ".").toLowerCase()}@farm.com`,
+          phone: w.contact,
+          position: "Farm Worker",
+          hireDate: new Date(w.created_at).toISOString().split("T")[0],
+          status: w.employment_status === "ACTIVE" ? "active" : "inactive",
+          address: "", // You can populate this later if needed
+          image_url: w.image_url,
+          imageUrl: w.image_url, // Support both camel and snake if needed
+        }));
+        setWorkers(mapped);
+      })
+      .catch((err) => {
+        toast.error(err.message || "Failed to load workers.");
+      })
+      .finally(() => setWorkersLoading(false));
+  }, []);
+
+  const getStatusFromTab = (tabValue: string): TaskStatus | null => {
+    const statusMap: { [key: string]: TaskStatus } = {
+      PENDING: TaskStatus.PENDING,
+      IN_PROGRESS: TaskStatus.IN_PROGRESS,
+      COMPLETED: TaskStatus.COMPLETED,
+      CANCELLED: TaskStatus.CANCELLED,
+    };
+    return statusMap[tabValue] || null;
+  };
+
   const getFilteredTasks = () => {
     return tasks.filter((task) => {
-      // First filter by tab (status)
-      const statusMatches = 
-        activeTab === "all" || 
-        activeTab === task.status || 
-        (activeTab === "calendar" ? true : false);
-      
-      // Then filter by priority if it's set
       const priorityMatches =
-        filterPriority === "all" ||
-        filterPriority === task.priority;
-        
+        filterPriority === "ALL" || filterPriority === task.priority;
+
+      if (activeTab === "ALL" || activeTab === "CALENDAR") {
+        return priorityMatches;
+      }
+
+      const expectedStatus = getStatusFromTab(activeTab);
+      const statusMatches = expectedStatus
+        ? task.status === expectedStatus
+        : false;
+
       return statusMatches && priorityMatches;
     });
   };
 
   const filteredTasks = getFilteredTasks();
 
-  const handleCreateTask = () => {
-    if (!newTask.title || !newTask.description || !newTask.dueDate || !newTask.assignee || !newTask.priority) {
-      return;
-    }
+  const handleCreateTask = async () => {
+    try {
+      const createdTask = await createTask(newTask);
+      await refetchTasks();
 
-    createTaskMutation.mutate({
-      title: newTask.title,
-      description: newTask.description,
-      dueDate: newTask.dueDate,
-      priority: newTask.priority as "low" | "medium" | "high",
-      status: newTask.status as "pending" | "in-progress" | "completed",
-      assigneeName: newTask.assignee,
-    }, {
-      onSuccess: () => {
-        setNewTask({
-          title: "",
-          description: "",
-          dueDate: "",
-          assignee: "",
-          priority: "",
-          status: "pending",
-        });
-        setIsDialogOpen(false);
+      if (assigneeId) {
+        await assignWorkerToTask(createdTask.id, { workerId: assigneeId });
       }
-    });
+
+      toast.success("Task created successfully!");
+
+      setNewTask({
+        title: "",
+        description: "",
+        priority: TaskPriority.MEDIUM,
+        startDate: new Date().toISOString(),
+        dueDate: "",
+        landDivisionId: null,
+      });
+
+      setAssigneeId(undefined);
+      setIsDialogOpen(false);
+      await refetchTasks();
+    } catch (error) {
+      console.error("Error creating task:", error);
+      toast.error("Failed to create task. Please try again.");
+    }
   };
 
-  const handleStatusChange = (taskId: number, newStatus: "pending" | "in-progress" | "completed") => {
-    updateTaskStatusMutation.mutate({ taskId, status: newStatus });
+  const handleStatusChange = async (taskId: number, newStatus: TaskStatus) => {
+    try {
+      await updateTaskStatus(taskId, {
+        status: newStatus,
+      });
+      toast.success("Task status updated successfully!");
+      await refetchTasks();
+    } catch (error) {
+      console.error("Status update failed", error);
+      toast.error("Failed to update task status. Please try again.");
+    }
   };
 
-  if (isLoading) {
+  if (isLoading || workersLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-farmlink-green mx-auto mb-4"></div>
+            <Clock className="h-12 w-12 text-farmlink-green mx-auto mb-4 animate-spin" />
             <p className="text-farmlink-darkgreen">Loading tasks...</p>
           </div>
         </div>
@@ -123,7 +189,13 @@ const Tasks = () => {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-farmlink-darkgreen">Failed to load tasks. Please try again.</p>
+            <p className="text-farmlink-darkgreen mb-4">{error}</p>
+            <Button
+              onClick={() => refetchTasks()}
+              className="bg-farmlink-green hover:bg-farmlink-mediumgreen text-white"
+            >
+              Try Again
+            </Button>
           </div>
         </div>
       </MainLayout>
@@ -135,28 +207,38 @@ const Tasks = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="space-y-6">
-            {filteredTasks.length > 0 ? filteredTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                title={task.title}
-                description={task.description}
-                assignee={task.assignee}
-                dueDate={task.dueDate}
-                priority={task.priority}
-                status={task.status}
-                onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
-              />
-            )) : (
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  title={task.title}
+                  description={task.description}
+                  assignee={{
+                    name: task.assignments[0]?.worker?.name || "Unassigned",
+                  }}
+                  dueDate={task.due_date.split("T")[0]}
+                  priority={task.priority}
+                  status={task.status}
+                  onStatusChange={(newStatus) =>
+                    handleStatusChange(task.id, newStatus)
+                  }
+                />
+              ))
+            ) : (
               <div className="text-center p-12 bg-gradient-to-br from-farmlink-offwhite/50 to-white rounded-2xl border border-farmlink-lightgreen/20 shadow-lg">
                 <Target className="h-16 w-16 text-farmlink-green/40 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">No tasks found</h3>
-                <p className="text-farmlink-darkgreen/70 mb-6">No tasks match your current filters.</p>
-                <Button 
-                  variant="outline" 
+                <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">
+                  No tasks found
+                </h3>
+                <p className="text-farmlink-darkgreen/70 mb-6">
+                  No tasks match your current filters.
+                </p>
+                <Button
+                  variant="outline"
                   className="border-farmlink-green text-farmlink-green hover:bg-farmlink-green hover:text-white"
                   onClick={() => {
-                    setActiveTab("all");
-                    setFilterPriority("all");
+                    setActiveTab("ALL");
+                    setFilterPriority("ALL");
                   }}
                 >
                   Clear filters
@@ -165,7 +247,7 @@ const Tasks = () => {
             )}
           </div>
         </div>
-        
+
         <div className="space-y-6">
           <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
@@ -177,43 +259,68 @@ const Tasks = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 rounded-xl bg-farmlink-offwhite/30">
-                  <span className="text-farmlink-darkgreen font-medium">Total Tasks</span>
-                  <span className="font-bold text-farmlink-darkgreen text-lg">{tasks.length}</span>
+                  <span className="text-farmlink-darkgreen font-medium">
+                    Total Tasks
+                  </span>
+                  <span className="font-bold text-farmlink-darkgreen text-lg">
+                    {tasks.length}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-green-50">
                   <span className="text-farmlink-darkgreen font-medium flex items-center">
                     <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
                     Completed
                   </span>
-                  <span className="font-bold text-green-600 text-lg">{tasks.filter(t => t.status === "completed").length}</span>
+                  <span className="font-bold text-green-600 text-lg">
+                    {
+                      tasks.filter((t) => t.status === TaskStatus.COMPLETED)
+                        .length
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-blue-50">
                   <span className="text-farmlink-darkgreen font-medium flex items-center">
                     <Clock className="h-4 w-4 mr-2 text-blue-600" />
                     In Progress
                   </span>
-                  <span className="font-bold text-blue-600 text-lg">{tasks.filter(t => t.status === "in-progress").length}</span>
+                  <span className="font-bold text-blue-600 text-lg">
+                    {
+                      tasks.filter((t) => t.status === TaskStatus.IN_PROGRESS)
+                        .length
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-yellow-50">
                   <span className="text-farmlink-darkgreen font-medium flex items-center">
                     <Clock className="h-4 w-4 mr-2 text-yellow-600" />
                     Pending
                   </span>
-                  <span className="font-bold text-yellow-600 text-lg">{tasks.filter(t => t.status === "pending").length}</span>
+                  <span className="font-bold text-yellow-600 text-lg">
+                    {
+                      tasks.filter((t) => t.status === TaskStatus.PENDING)
+                        .length
+                    }
+                  </span>
                 </div>
+
                 <div className="pt-3 border-t border-farmlink-lightgreen/20">
                   <div className="flex justify-between items-center p-3 rounded-xl bg-red-50">
                     <span className="text-farmlink-darkgreen font-medium flex items-center">
                       <AlertTriangle className="h-4 w-4 mr-2 text-red-600" />
                       High Priority
                     </span>
-                    <span className="text-red-600 font-bold text-lg">{tasks.filter(t => t.priority === "high").length}</span>
+                    <span className="text-red-600 font-bold text-lg">
+                      {
+                        tasks.filter((t) => t.priority === TaskPriority.HIGH)
+                          .length
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-farmlink-darkgreen flex items-center">
@@ -222,42 +329,26 @@ const Tasks = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
+              <Select
+                value={filterPriority}
+                onValueChange={(value) =>
+                  setFilterPriority(value as TaskPriority | "ALL")
+                }
+              >
                 <SelectTrigger className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="high">High Priority</SelectItem>
-                  <SelectItem value="medium">Medium Priority</SelectItem>
-                  <SelectItem value="low">Low Priority</SelectItem>
+                  <SelectItem value="ALL">All Priorities</SelectItem>
+                  <SelectItem value={TaskPriority.HIGH}>
+                    High Priority
+                  </SelectItem>
+                  <SelectItem value={TaskPriority.MEDIUM}>
+                    Medium Priority
+                  </SelectItem>
+                  <SelectItem value={TaskPriority.LOW}>Low Priority</SelectItem>
                 </SelectContent>
               </Select>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-farmlink-darkgreen">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { action: "Task completed", task: "Fertilize corn field", user: "John", time: "2 hours ago" },
-                  { action: "Task created", task: "Inspect greenhouse vents", user: "Sarah", time: "Yesterday" },
-                  { action: "Task updated", task: "Order new seeds", user: "Mike", time: "Yesterday" },
-                ].map((activity, i) => (
-                  <div key={i} className="border-b border-farmlink-lightgreen/20 pb-3 last:border-0 last:pb-0">
-                    <p className="text-farmlink-darkgreen">
-                      <span className="font-semibold">{activity.action}:</span>{" "}
-                      <span className="text-farmlink-darkgreen/80">{activity.task}</span>
-                    </p>
-                    <p className="text-xs text-farmlink-darkgreen/60 mt-1">
-                      By {activity.user} • {activity.time}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -289,55 +380,92 @@ const Tasks = () => {
               </DialogTrigger>
               <DialogContent className="border-0 bg-white/95 backdrop-blur-sm">
                 <DialogHeader>
-                  <DialogTitle className="text-farmlink-darkgreen text-xl">Create New Task</DialogTitle>
+                  <DialogTitle className="text-farmlink-darkgreen text-xl">
+                    Create New Task
+                  </DialogTitle>
                   <DialogDescription className="text-farmlink-darkgreen/70">
                     Add details for the new farming task.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="text-farmlink-darkgreen font-medium">Task Title</Label>
-                    <Input 
-                      id="title" 
+                    <Label
+                      htmlFor="title"
+                      className="text-farmlink-darkgreen font-medium"
+                    >
+                      Task Title
+                    </Label>
+                    <Input
+                      id="title"
                       placeholder="Enter task name"
                       value={newTask.title}
-                      onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, title: e.target.value })
+                      }
                       className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-farmlink-darkgreen font-medium">Description</Label>
+                    <Label
+                      htmlFor="description"
+                      className="text-farmlink-darkgreen font-medium"
+                    >
+                      Description
+                    </Label>
                     <Textarea
                       id="description"
                       placeholder="Enter task details"
                       className="resize-none border-farmlink-lightgreen/30 focus:border-farmlink-green"
                       value={newTask.description}
-                      onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, description: e.target.value })
+                      }
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="dueDate" className="text-farmlink-darkgreen font-medium">Due Date</Label>
-                      <Input 
-                        id="dueDate" 
+                      <Label
+                        htmlFor="dueDate"
+                        className="text-farmlink-darkgreen font-medium"
+                      >
+                        Due Date
+                      </Label>
+                      <Input
+                        id="dueDate"
                         type="date"
                         value={newTask.dueDate}
-                        onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                        onChange={(e) =>
+                          setNewTask({
+                            ...newTask,
+                            dueDate: new Date(e.target.value).toISOString(),
+                          })
+                        }
                         className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="assignee" className="text-farmlink-darkgreen font-medium">Assign To</Label>
-                      <Select 
-                        value={newTask.assignee}
-                        onValueChange={(value) => setNewTask({...newTask, assignee: value})}
+                      <Label
+                        htmlFor="assignee"
+                        className="text-farmlink-darkgreen font-medium"
                       >
-                        <SelectTrigger id="assignee" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
+                        Assign To
+                      </Label>
+                      <Select
+                        value={assigneeId?.toString() || ""}
+                        onValueChange={(value) => setAssigneeId(Number(value))}
+                      >
+                        <SelectTrigger
+                          id="assignee"
+                          className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
+                        >
                           <SelectValue placeholder="Select worker" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableWorkers.map((worker) => (
-                            <SelectItem key={worker.id} value={worker.name}>
+                          {workers.map((worker) => (
+                            <SelectItem
+                              key={worker.id}
+                              value={worker.id.toString()}
+                            >
                               {worker.name} - {worker.position}
                             </SelectItem>
                           ))}
@@ -347,49 +475,53 @@ const Tasks = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="priority" className="text-farmlink-darkgreen font-medium">Priority</Label>
+                      <Label
+                        htmlFor="priority"
+                        className="text-farmlink-darkgreen font-medium"
+                      >
+                        Priority
+                      </Label>
                       <Select
                         value={newTask.priority}
-                        onValueChange={(value) => setNewTask({...newTask, priority: value})}
+                        onValueChange={(value: TaskPriority) =>
+                          setNewTask({
+                            ...newTask,
+                            priority: value,
+                          })
+                        }
                       >
-                        <SelectTrigger id="priority" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
+                        <SelectTrigger
+                          id="priority"
+                          className="border-farmlink-lightgreen/30 focus:border-farmlink-green"
+                        >
                           <SelectValue placeholder="Set priority" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="status" className="text-farmlink-darkgreen font-medium">Status</Label>
-                      <Select
-                        value={newTask.status}
-                        onValueChange={(value) => setNewTask({...newTask, status: value as "pending" | "in-progress" | "completed"})}
-                      >
-                        <SelectTrigger id="status" className="border-farmlink-lightgreen/30 focus:border-farmlink-green">
-                          <SelectValue placeholder="Set status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value={TaskPriority.LOW}>Low</SelectItem>
+                          <SelectItem value={TaskPriority.MEDIUM}>
+                            Medium
+                          </SelectItem>
+                          <SelectItem value={TaskPriority.HIGH}>
+                            High
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-farmlink-lightgreen text-farmlink-darkgreen hover:bg-farmlink-offwhite">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="border-farmlink-lightgreen text-farmlink-darkgreen hover:bg-farmlink-offwhite"
+                  >
                     Cancel
                   </Button>
-                  <Button 
-                    onClick={handleCreateTask} 
-                    disabled={createTaskMutation.isPending}
+                  <Button
+                    onClick={handleCreateTask}
                     className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white"
                   >
-                    {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+                    Create Task
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -400,33 +532,37 @@ const Tasks = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-between items-center">
             <TabsList className="bg-white/70 backdrop-blur-sm border border-farmlink-lightgreen/30">
-              <TabsTrigger value="all" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">All</TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Pending</TabsTrigger>
-              <TabsTrigger value="in-progress" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">In Progress</TabsTrigger>
-              <TabsTrigger value="completed" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Completed</TabsTrigger>
-              <TabsTrigger value="calendar" className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white">Calendar</TabsTrigger>
+              {[
+                { value: "ALL", label: "All" },
+                { value: "PENDING", label: "Pending" },
+                { value: "IN_PROGRESS", label: "In Progress" },
+                { value: "COMPLETED", label: "Completed" },
+                { value: "CANCELLED", label: "Cancelled" },
+                { value: "CALENDAR", label: "Calendar" },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="data-[state=active]:bg-farmlink-green data-[state=active]:text-white"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
           </div>
-          
-          <TabsContent value="calendar" className="mt-6">
+
+          <TabsContent value="CALENDAR" className="mt-6">
             <TaskCalendar tasks={tasks} />
           </TabsContent>
-          
-          <TabsContent value="all" className="mt-6">
-            {renderTaskContent()}
-          </TabsContent>
 
-          <TabsContent value="pending" className="mt-6">
+          <TabsContent value="ALL" className="mt-6">
             {renderTaskContent()}
           </TabsContent>
-
-          <TabsContent value="in-progress" className="mt-6">
-            {renderTaskContent()}
-          </TabsContent>
-
-          <TabsContent value="completed" className="mt-6">
-            {renderTaskContent()}
-          </TabsContent>
+          {Object.values(TaskStatus).map((status) => (
+            <TabsContent key={status} value={status} className="mt-6">
+              {renderTaskContent()}
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </MainLayout>
