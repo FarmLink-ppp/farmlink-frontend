@@ -4,6 +4,7 @@ export * from "./plant-health";
 export * from "./farm";
 export * from "./follow";
 export * from "./profile";
+export * from "./task";
 
 export interface ApiResponse<T = any> {
   data?: T;
@@ -28,34 +29,6 @@ export interface WeatherData {
   windSpeed: number;
   high: number;
   low: number;
-}
-
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  start_date: string;
-  due_date: string;
-  land_division_id: number;
-}
-
-export enum TaskStatus {
-  PENDING = "PENDING",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
-
-export enum TaskPriority {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-}
-export interface TaskResponse {
-  tasks: Task[];
-  totalCount: number;
 }
 
 export interface DailyTip {

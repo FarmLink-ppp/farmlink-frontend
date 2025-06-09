@@ -13,7 +13,6 @@ import {
   ProfileResponse,
   ScanWithDiagnosis,
   CreateScanResponse,
-  
   CreateFarmDto,
   FarmResponse,
   UpdateFarmDto,
@@ -29,12 +28,16 @@ import {
   FollowResponse,
   Follow,
   DailyTip,
-  TaskResponse,
+  UpcomingTaskResponse,
   UpdateProfileInformationDto,
   UpdatePasswordDto,
   UpdateAccountType,
+  AssignTaskDto,
+  CreateTaskDto,
+  Task,
+  TaskAssignment,
+  UpdateTaskStatusDto,
 } from "@/types";
-import type { AssignTaskDto, CreateTaskDto, Task, TaskAssignment, UpdateTaskStatusDto } from "@/types/task";
 const API_BASE_URL = "http://localhost:3000/api";
 
 class ApiClient {
@@ -353,10 +356,6 @@ class ApiClient {
     return this.request<User>("/users/profile");
   }
 
-  async getUpcomingTasks(): Promise<TaskResponse> {
-    return this.request<TaskResponse>("/tasks/upcoming");
-  }
-
   // WORKERS
   async getWorkersByEmployer(): Promise<Worker[]> {
     return this.request<Worker[]>("/worker/employer");
@@ -461,31 +460,49 @@ class ApiClient {
       }
     );
   }
+
   async createTask(data: CreateTaskDto): Promise<Task> {
     console.log("Payload sent to API:", data);
-  return this.request<Task>("/tasks", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-async assignWorkerToTask(taskId: number, data: AssignTaskDto): Promise<TaskAssignment> {
-  console.log("Payload sent to API:",data);
-  return this.request<TaskAssignment>(`/tasks/${taskId}/assign`, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-async getTasksForUser(): Promise<Task[]> {
-  return this.request<Task[]>("/tasks"); // assuming base path matches your controller
-}
-async updateTaskStatus(
-  taskId: number,
-  data: UpdateTaskStatusDto
-): Promise<Task> {
-  return this.request<Task>(`/tasks/${taskId}/status`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
+    return this.request<Task>("/tasks", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async assignWorkerToTask(
+    taskId: number,
+    data: AssignTaskDto
+  ): Promise<TaskAssignment> {
+    console.log("Payload sent to API:", data);
+    return this.request<TaskAssignment>(`/tasks/${taskId}/assign`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getTasksForUser(): Promise<Task[]> {
+    return this.request<Task[]>("/tasks");
+  }
+
+  async getUpcomingTasks(): Promise<UpcomingTaskResponse> {
+    return this.request<UpcomingTaskResponse>("/tasks/upcoming");
+  }
+
+  async updateTaskStatus(
+    taskId: number,
+    data: UpdateTaskStatusDto
+  ): Promise<Task> {
+    return this.request<Task>(`/tasks/${taskId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTask(taskId: number): Promise<MessageResponse> {
+    return this.request<MessageResponse>(`/tasks/${taskId}`, {
+      method: "DELETE",
+    });
+  }
 
   async updateProfileInformation(
     updateProfileInformation: UpdateProfileInformationDto,
@@ -558,9 +575,5 @@ async updateTaskStatus(
     });
   }
 }
-
-}
-
-
 
 export const apiClient = new ApiClient();
