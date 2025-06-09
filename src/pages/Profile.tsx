@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import PostCard from "@/components/community/PostCard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import {
   Bookmark,
   Sparkles,
 } from "lucide-react";
+import { apiClient } from "@/lib/api";
 import { useFollow } from "@/hooks/useFollow";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "@/hooks/use-toast";
@@ -20,6 +21,8 @@ import { Link } from "react-router-dom";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
+  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [sharedPosts, setSharedPosts] = useState<any[]>([]);
   const {
     profile,
     loading: isProfileLoading,
@@ -48,53 +51,61 @@ const Profile = () => {
     return initials;
   };
 
-  // Mock user's posts
-  const userPosts = [
-    {
-      id: 1,
-      author: { name: "John Doe", avatar: "" },
-      date: "2 hours ago",
-      content:
-        "Just finished installing a new drip irrigation system in the greenhouse. The water efficiency is already showing great improvements!",
-      likes: 15,
-      comments: 4,
-    },
-    {
-      id: 2,
-      author: { name: "John Doe", avatar: "" },
-      date: "1 day ago",
-      content:
-        "Harvested the first batch of tomatoes this season. The organic fertilizer mix really made a difference in both size and taste!",
-      image:
-        "https://images.unsplash.com/photo-1592921870789-04563d55041c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      likes: 28,
-      comments: 8,
-    },
-  ];
+  useEffect(() => {
+    const fetchUserPosts = async () => {
+      try {
+        const backendPosts = await apiClient.getUserPosts();
+        const mapped = backendPosts.map((p: any) => ({
+          id: p.id,
+          author: {
+            name: p.user?.username || "Unknown",
+            avatar: p.user?.profile_image || "",
+          },
+          date: p.created_at ? new Date(p.created_at).toLocaleString() : "",
+          content: p.content,
+          image:
+            p.image_urls && p.image_urls.length > 0
+              ? p.image_urls[0]
+              : undefined,
+          likes: p.likes ? p.likes.length : 0,
+          comments: p.comments ? p.comments.length : 0,
+        }));
+        setUserPosts(mapped);
+      } catch (error) {
+        console.error("Failed to fetch user posts:", error);
+      }
+    };
+    fetchUserPosts();
+  }, []);
 
-  // Mock shared posts
-  const sharedPosts = [
-    {
-      id: 3,
-      author: { name: "Sarah Johnson", avatar: "" },
-      date: "3 days ago",
-      content:
-        "Great results with my crop rotation strategy this season! Alternating between corn, soybeans, and cover crops has really improved soil health.",
-      image:
-        "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      likes: 24,
-      comments: 6,
-    },
-    {
-      id: 4,
-      author: { name: "Mike Lewis", avatar: "" },
-      date: "1 week ago",
-      content:
-        "Has anyone tried the new organic fertilizer from GreenGrow? I'm considering it for my tomato fields but wanted to hear some experiences first.",
-      likes: 12,
-      comments: 8,
-    },
-  ];
+  useEffect(() => {
+    const fetchSharedPosts = async () => {
+      try {
+        const backendPosts = await apiClient.getUserSharedPosts();
+        console.log("Fetched shared posts:", backendPosts);
+
+        const mapped = backendPosts.map((p: any) => ({
+          id: p.id,
+          author: {
+            name: p.user?.username || "Unknown",
+            avatar: p.user?.profile_image || "",
+          },
+          date: p.created_at ? new Date(p.created_at).toLocaleString() : "",
+          content: p.content,
+          image:
+            p.image_urls && p.image_urls.length > 0
+              ? p.image_urls[0]
+              : undefined,
+          likes: p.likes ? p.likes.length : 0,
+          comments: p.comments ? p.comments.length : 0,
+        }));
+        setSharedPosts(mapped);
+      } catch (error) {
+        console.error("Failed to fetch shared posts:", error);
+      }
+    };
+    fetchSharedPosts();
+  }, []);
 
   const error = isProfileError || isFollowError || plantsError;
 
@@ -227,7 +238,7 @@ const Profile = () => {
               My Posts
             </TabsTrigger>
             <TabsTrigger
-              value="saved"
+              value="shared"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-farmlink-green data-[state=active]:to-farmlink-mediumgreen data-[state=active]:text-white text-farmlink-darkgreen font-medium px-6 py-2 rounded-lg transition-all duration-300 flex items-center"
             >
               <Bookmark className="w-4 h-4 mr-2" />
@@ -246,6 +257,7 @@ const Profile = () => {
               {userPosts.map((post) => (
                 <PostCard
                   key={post.id}
+                  id={post.id}
                   author={post.author}
                   date={post.date}
                   content={post.content}
@@ -274,17 +286,17 @@ const Profile = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="saved" className="space-y-6">
+          <TabsContent value="shared" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-farmlink-darkgreen">
                 Shared Posts ({sharedPosts.length})
               </h2>
             </div>
-
             <div className="space-y-6">
               {sharedPosts.map((post) => (
                 <PostCard
                   key={post.id}
+                  id={post.id}
                   author={post.author}
                   date={post.date}
                   content={post.content}
@@ -293,16 +305,15 @@ const Profile = () => {
                   comments={post.comments}
                 />
               ))}
-
               {sharedPosts.length === 0 && (
                 <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-12 text-center">
                     <Bookmark className="h-16 w-16 text-farmlink-lightgreen mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-farmlink-darkgreen mb-2">
-                      No Shared posts
+                      No shared posts
                     </h3>
                     <p className="text-farmlink-darkgreen/60 mb-6">
-                      Share interesting posts to view them later!
+                      Share interesting posts to see them here!
                     </p>
                     <Button
                       variant="outline"

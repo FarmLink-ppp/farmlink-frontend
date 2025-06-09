@@ -6,6 +6,7 @@ export * from "./follow";
 export * from "./profile";
 export * from "./task";
 
+export * from "./post";
 export interface ApiResponse<T = any> {
   data?: T;
   message?: string;

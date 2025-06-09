@@ -37,6 +37,8 @@ import {
   Task,
   TaskAssignment,
   UpdateTaskStatusDto,
+  PostResponse,
+  PostComment,
 } from "@/types";
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -572,6 +574,80 @@ class ApiClient {
   async deleteAccount(): Promise<MessageResponse> {
     return this.request<MessageResponse>("/users/account", {
       method: "DELETE",
+    });
+  }
+
+  async createPost(postData: {
+    title?: string;
+    content?: string;
+    image_urls?: File[]; // Accept File objects
+    category?: string;
+    user_id?: number;
+  }): Promise<PostResponse> {
+    const formData = new FormData();
+    if (postData.title) formData.append("title", postData.title);
+    if (postData.content) formData.append("content", postData.content);
+    if (postData.category) formData.append("category", postData.category);
+    if (postData.image_urls && postData.image_urls.length > 0) {
+      postData.image_urls.forEach((file) => {
+        formData.append("image_urls", file); // field name must match backend
+      });
+    }
+    // Don't set Content-Type; browser will set it with boundary
+    return this.request<PostResponse>("/posts", {
+      method: "POST",
+      body: formData,
+      headers: {
+        ...(this.getTokenFromCookie() && {
+          Authorization: `Bearer ${this.getTokenFromCookie()}`,
+        }),
+      },
+    });
+  }
+
+  async likePost(postId: number): Promise<MessageResponse> {
+    console.log(postId);
+    return this.request<MessageResponse>(`/posts/like/${postId}`, {
+      method: "POST",
+    });
+  }
+
+  async unlikePost(postId: number): Promise<MessageResponse> {
+    return this.request<MessageResponse>(`/posts/like/${postId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFeed(): Promise<PostResponse[]> {
+    return this.request<PostResponse[]>(`/posts/feed`);
+  }
+
+  async getPostComments(postId: number): Promise<PostComment[]> {
+    return this.request<PostComment[]>(`/posts/comments/${postId}`);
+  }
+
+  async createComment(postId: number, content: string): Promise<PostComment> {
+    return this.request<PostComment>(`/posts/comment/${postId}`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async sharePost(postId: number): Promise<MessageResponse> {
+    return this.request<MessageResponse>(`/posts/share/${postId}`, {
+      method: "POST",
+    });
+  }
+
+  async getUserPosts(): Promise<PostResponse[]> {
+    return this.request<PostResponse[]>(`/posts/me`, {
+      method: "GET",
+    });
+  }
+
+  async getUserSharedPosts(): Promise<PostResponse[]> {
+    return this.request<PostResponse[]>(`/posts/me/shared-posts`, {
+      method: "GET",
     });
   }
 }
