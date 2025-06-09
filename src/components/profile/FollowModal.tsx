@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,12 @@ const FollowModal: React.FC<FollowModalProps> = ({
             <IconComponent className="h-5 w-5" />
             {config.title} ({data.length})
           </DialogTitle>
+          <DialogDescription className="text-farmlink-darkgreen/70 text-sm">
+            {type === "followers" && "These users are following your profile."}
+            {type === "following" && "These are the users you are following."}
+            {type === "requests" &&
+              "Manage the follow requests from other users."}
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 max-h-[400px]">
@@ -166,10 +173,11 @@ const FollowModal: React.FC<FollowModalProps> = ({
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-10 w-10 border-2 border-farmlink-lightgreen/30">
                         {profileImage && (
-                          <AvatarImage
+                          <img
                             src={profileImage}
                             alt={displayName}
                             crossOrigin="anonymous"
+                            className="object-cover"
                           />
                         )}
                         <AvatarFallback className="bg-gradient-to-br from-farmlink-green to-farmlink-mediumgreen text-white text-sm font-medium">

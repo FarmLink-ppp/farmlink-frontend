@@ -367,9 +367,11 @@ const Profile = () => {
                     <p className="text-farmlink-darkgreen/60 mb-6">
                       Share your farming experiences with the community!
                     </p>
-                    <Button className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white">
-                      Create Your First Post
-                    </Button>
+                    <Link to="/community">
+                      <Button className="bg-gradient-to-r from-farmlink-green to-farmlink-mediumgreen hover:from-farmlink-mediumgreen hover:to-farmlink-darkgreen text-white">
+                        Create Your First Post
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               )}
