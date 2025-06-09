@@ -11,10 +11,13 @@ import {
   Send,
   Image as ImageIcon,
   Sparkles,
+  Lightbulb,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { DailyTip } from "@/types";
+import { Badge } from "@/components/ui/badge";
 
 interface Post {
   id: number;
@@ -26,6 +29,13 @@ interface Post {
   comments: number;
 }
 
+const defaultDailyTip = {
+  title: "Today's Farming Tip",
+  content:
+    "Water your plants early in the morning to reduce evaporation and give them the best start to the day. This helps conserve water and ensures your plants stay hydrated longer.",
+  category: "Water Management",
+};
+
 const Community = () => {
   const [newPost, setNewPost] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -33,10 +43,18 @@ const Community = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [dailyTip, setDailyTip] = useState<DailyTip | null>(null);
   const { user } = useAuth();
   const [visibleCount, setVisibleCount] = useState(5);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   console.log("user in community page", user);
+
+  useEffect(() => {
+    apiClient
+      .getDailyTip()
+      .then(setDailyTip)
+      .catch((err) => console.error("Failed to fetch daily tip", err));
+  }, []);
 
   useEffect(() => {
     const fetchFeed = async () => {
@@ -395,17 +413,22 @@ const Community = () => {
             </Card>
 
             <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-farmlink-darkgreen">
-                  Daily Farming Tip
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-farmlink-darkgreen flex items-center">
+                  <Lightbulb className="w-5 h-5 mr-2 text-farmlink-green" />
+                  {dailyTip ? dailyTip.title : defaultDailyTip.title}
                 </CardTitle>
+                <Badge
+                  variant="secondary"
+                  className="bg-farmlink-lightgreen/20 text-farmlink-darkgreen"
+                >
+                  {dailyTip ? dailyTip.category : defaultDailyTip.category}
+                </Badge>
               </CardHeader>
               <CardContent>
-                <div className="bg-gradient-to-r from-farmlink-lightgreen/10 to-farmlink-green/5 p-4 rounded-xl border border-farmlink-lightgreen/20">
-                  <p className="text-sm italic text-farmlink-darkgreen">
-                    "Improve soil health by adding organic matter at least once
-                    per season. It increases water retention and provides vital
-                    nutrients."
+                <div className="p-6 rounded-xl bg-gradient-to-br from-farmlink-green/5 to-farmlink-mediumgreen/5 border border-farmlink-lightgreen/20">
+                  <p className="text-farmlink-darkgreen/80 leading-relaxed text-lg">
+                    {dailyTip ? dailyTip.content : defaultDailyTip.content}
                   </p>
                 </div>
               </CardContent>
